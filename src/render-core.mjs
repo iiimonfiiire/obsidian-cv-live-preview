@@ -135,6 +135,9 @@ export function renderHtml(src, { css, fontUrl }) {
     sections.Projects && section("Projects", projects(sections.Projects)),
   ].join("");
   const side = [
+    sections.Technical && section("Technical", block(sections.Technical)),
+    sections["Open source and community"] &&
+      section("Open source and community", block(sections["Open source and community"])),
     sections.Skills && section("Skills", skills(sections.Skills)),
     sections.Education && section("Education", education(sections.Education)),
     sections.Languages && section("Languages", languages(sections.Languages)),

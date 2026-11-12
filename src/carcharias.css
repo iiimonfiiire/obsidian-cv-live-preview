@@ -70,3 +70,7 @@ li p { margin: 0; }
 .lang { display: flex; justify-content: space-between; margin-top: 5pt; }
 .fluency { color: var(--muted); }
 .nb { white-space: nowrap; }
+
+aside li { padding-left: 9pt; margin-bottom: 3pt; }
+aside li::before { left: 1.5pt; }
+aside section ul { margin-top: 4pt; }

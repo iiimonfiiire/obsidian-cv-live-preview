@@ -47,4 +47,5 @@ Set `CHROME_BIN` if Chrome is not at the default macOS path.
 
 - Line breaks differ from the react-pdf renderer on a few lines, so rely on
   the bottom-margin check, not only the page count.
-- No automated tests yet beyond a manual smoke test.
+- Tests cover section parsing and rendering (`npm test`). The plugin UI and
+  PDF export are not covered by automated tests.

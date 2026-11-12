@@ -8,7 +8,8 @@
     "build": "node build.mjs",
     "install-plugin": "node install.mjs",
     "fonts": "node scripts/fetch-fonts.mjs",
-    "render": "node scripts/render.mjs"
+    "render": "node scripts/render.mjs",
+    "test": "node --test tests/render-core.test.mjs"
   },
   "dependencies": { "marked": "^15.0.0" },
   "devDependencies": { "esbuild": "^0.25.0" }

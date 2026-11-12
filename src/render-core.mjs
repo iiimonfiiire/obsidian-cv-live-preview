@@ -141,6 +141,7 @@ export function renderHtml(src, { css, fontUrl }) {
     sections.Skills && section("Skills", skills(sections.Skills)),
     sections.Education && section("Education", education(sections.Education)),
     sections.Languages && section("Languages", languages(sections.Languages)),
+    sections["Fun fact"] && section("Fun fact", block(sections["Fun fact"])),
   ].join("");
   const page = `${header(meta)}
 <div class="featured">${block(summary)}</div>

@@ -1,0 +1,72 @@
+@font-face { font-family: "Figtree"; font-weight: 400; src: url("FONTDIR/Figtree-400.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 500; src: url("FONTDIR/Figtree-500.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 600; src: url("FONTDIR/Figtree-600.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 700; src: url("FONTDIR/Figtree-700.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 800; src: url("FONTDIR/Figtree-800.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 500; src: url("FONTDIR/BarlowCondensed-500.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; src: url("FONTDIR/BarlowCondensed-600.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; src: url("FONTDIR/BarlowCondensed-700.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; src: url("FONTDIR/BarlowCondensed-800.ttf"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; src: url("FONTDIR/JetBrainsMono-400.ttf"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; src: url("FONTDIR/JetBrainsMono-500.ttf"); }
+
+:root {
+  --primary: #e5510d;
+  --text: #1c272d;
+  --bg: #f2f5f6;
+  --muted: #5b6b73;
+  --hairline: rgba(13, 20, 24, 0.28);
+}
+
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { background: var(--bg); color: var(--text); font-family: "Figtree", sans-serif; font-size: 8.75pt; line-height: 1.25; }
+.page { width: 210mm; min-height: 296mm; padding: 35pt 39.6pt 0; background: var(--bg); }
+
+strong { font-weight: 550; }
+code { font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 0.95em; }
+a { color: inherit; }
+
+header { position: relative; display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 18pt; }
+header h1 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 30.4pt; line-height: 1.1; letter-spacing: 0.08em; text-transform: uppercase; }
+.headline { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 10pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); margin-top: 6pt; }
+.contact { font-family: "JetBrains Mono", monospace; font-size: 7.4pt; text-align: right; display: flex; flex-direction: column; gap: 2pt; padding-top: 2pt; }
+.contact-row { display: flex; justify-content: flex-end; align-items: center; gap: 4pt; }
+.contact a { text-decoration: underline; text-underline-offset: 1.5pt; }
+.ic { width: 7pt; height: 7pt; color: var(--primary); flex: none; }
+.rule { position: absolute; left: 0; right: 0; bottom: 0; height: 2pt; background: var(--primary); }
+
+.featured { margin-top: 8pt; }
+.featured p { font-size: 8.75pt; line-height: 1.2; }
+
+.cols { display: flex; gap: 28pt; margin-top: 4pt; }
+main { flex: 1 1 0; min-width: 0; }
+aside { flex: 0 0 33.1%; min-width: 0; }
+
+section { margin-top: 9pt; }
+h2 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 10.5pt; letter-spacing: 0.16em; text-transform: uppercase; padding-bottom: 3pt; border-bottom: 0.75pt solid var(--hairline); margin-bottom: 1pt; }
+
+article { padding-top: 6pt; }
+.item-head { padding-right: 3.4pt; display: flex; justify-content: space-between; align-items: baseline; gap: 6pt; padding-bottom: 2pt; }
+.company { font-weight: 800; }
+.position { font-weight: 600; }
+.date { font-family: "JetBrains Mono", monospace; font-weight: 400; font-size: 7.4pt; color: var(--muted); white-space: nowrap; }
+article p { margin-bottom: 4pt; }
+article > p > em:only-child { font-style: italic; }
+ul { list-style: none; }
+li { position: relative; padding-left: 12pt; margin-bottom: 2pt; }
+li::before { content: "•"; position: absolute; left: 4.5pt; }
+li p { margin: 0; }
+
+.skill { margin-top: 7pt; }
+.skill-name { font-weight: 700; font-size: 7.4pt; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary); margin-bottom: 1.5pt; }
+.kw { color: var(--text); }
+
+.edu { padding-top: 9pt; }
+.degree { font-weight: 600; }
+.edu .date { margin-top: 1pt; }
+
+.lang { display: flex; justify-content: space-between; margin-top: 5pt; }
+.fluency { color: var(--muted); }
+.nb { white-space: nowrap; }

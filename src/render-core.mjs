@@ -88,9 +88,8 @@ function skills(text) {
       const kws = body.split(",").map((k) => k.trim()).filter(Boolean);
       kws[0] = kws[0][0].toUpperCase() + kws[0].slice(1);
       return `<div class="skill"><div class="skill-name">${head}</div><p class="kw">${kws
-        .map((k, i) => inline(k) + (i < kws.length - 1 ? " ·&nbsp;" : ""))
-        .join("")
-        .replace(/&nbsp;/g, " ")}</p></div>`;
+        .map((k) => inline(k))
+        .join(", ")}</p></div>`;
     })
     .join("");
 }

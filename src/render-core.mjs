@@ -66,8 +66,8 @@ function experience(text) {
     .map(({ head, body }) => {
       const { parts, period } = splitHead(head);
       const [company, ...pos] = parts;
-      return `<article><div class="item-head"><div class="title"><span class="company">${company}</span>${
-        pos.length ? `<span class="sep"> • </span><span class="position">${pos.join(" · ")}</span>` : ""
+      return `<article><div class="item-head"><div class="title"><span class="company">${inline(company)}</span>${
+        pos.length ? `<span class="sep"> • </span><span class="position">${inline(pos.join(" · "))}</span>` : ""
       }</div><div class="date">${period}</div></div>${block(body)}</article>`;
     })
     .join("");
@@ -77,7 +77,7 @@ function projects(text) {
   return items(text)
     .map(({ head, body }) => {
       const { parts, period } = splitHead(head);
-      return `<article><div class="item-head"><div class="title"><span class="company">${parts.join(" · ")}</span></div><div class="date">${period}</div></div>${block(body)}</article>`;
+      return `<article><div class="item-head"><div class="title"><span class="company">${inline(parts.join(" · "))}</span></div><div class="date">${period}</div></div>${block(body)}</article>`;
     })
     .join("");
 }
@@ -100,7 +100,7 @@ function education(text) {
     .map(({ head }) => {
       const { parts, period } = splitHead(head);
       const [degree, area, school] = parts;
-      return `<article class="edu"><div class="degree">${degree} ${area}</div><div class="school">${school}</div><div class="date">${period}</div></article>`;
+      return `<article class="edu"><div class="degree">${inline(`${degree} ${area}`)}</div><div class="school">${inline(school)}</div><div class="date">${period}</div></article>`;
     })
     .join("");
 }

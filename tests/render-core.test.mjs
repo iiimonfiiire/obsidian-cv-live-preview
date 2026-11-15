@@ -143,6 +143,12 @@ test("renderHtml rewrites font placeholders through fontUrl", () => {
   assert.doesNotMatch(out, /FONTDIR/);
 });
 
+test("skill keywords are separated by plain commas", () => {
+  const out = html(`${FRONT}\nSummary.\n\n## Skills\n\n### Docs\n\nwriting, editing, docs-as-code\n`);
+  assert.match(out, /<p class="kw">Writing, editing, <span class="nb">docs-as-code<\/span><\/p>/);
+  assert.doesNotMatch(out, /·/);
+});
+
 test("hyphenated words are kept unbroken", () => {
   assert.match(html(FULL), /<span class="nb">docs-as-code<\/span>/);
 });

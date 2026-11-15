@@ -147,8 +147,9 @@ test("skill keywords are separated by plain commas", () => {
   const out = html(`${FRONT}\nSummary.\n\n## Skills\n\n### Docs\n\nwriting, editing, docs-as-code\n`);
   assert.match(out, /<p class="kw">Writing, editing, <span class="nb">docs-as-code<\/span><\/p>/);
   assert.doesNotMatch(out, /·/);
+});
 
-  test("Markdown links in item headings render as links", () => {
+test("Markdown links in item headings render as links", () => {
   const out = html(
     `${FRONT}\nSummary.\n\n## Experience\n\n### [Acme](https://acme.example/x) · [Writer](https://acme.example/w) · 2020\n\n- Did it.\n\n## Projects\n\n### [Side project](https://example.com/p) · 2023\n\n- Built it.\n`,
   );
@@ -156,6 +157,12 @@ test("skill keywords are separated by plain commas", () => {
   assert.match(out, /<span class="position"><a href="https:\/\/acme\.example\/w">Writer<\/a><\/span>/);
   assert.match(out, /<span class="company"><a href="https:\/\/example\.com\/p">Side project<\/a><\/span>/);
   assert.doesNotMatch(out, /\]\(https/);
+});
+
+test("heading links are underlined in the stylesheet", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const css = await readFile(new URL("../src/carcharias.css", import.meta.url), "utf8");
+  assert.match(css, /\.item-head a\s*\{[^}]*text-decoration:\s*underline/);
 });
 
 test("hyphenated words are kept unbroken", () => {

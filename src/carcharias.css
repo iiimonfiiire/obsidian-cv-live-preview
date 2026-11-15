@@ -74,3 +74,4 @@ li p { margin: 0; }
 aside li { padding-left: 9pt; margin-bottom: 3pt; }
 aside li::before { left: 1.5pt; }
 aside section ul { margin-top: 4pt; }
+.item-head a { text-decoration: none; }

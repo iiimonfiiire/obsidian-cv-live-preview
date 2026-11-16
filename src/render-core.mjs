@@ -19,7 +19,7 @@ export function parseCv(src) {
 
 const inline = (s) => marked.parseInline(s);
 const block = (s) => marked.parse(s);
-const PERIOD = /^(\d{2}\/\d{4}|\d{4})(\s*[–-]\s*(\d{2}\/\d{4}|\d{4}|Present))?$/;
+export const PERIOD = /^(\d{2}\/\d{4}|\d{4})(\s*[–-]\s*(\d{2}\/\d{4}|\d{4}|Present))?$/;
 
 function items(text) {
   return text
@@ -145,7 +145,7 @@ export function renderHtml(src, { css, fontUrl }) {
   const page = `${header(meta)}
 <div class="featured">${block(summary)}</div>
 <div class="cols"><main>${main}</main><aside>${side}</aside></div>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${meta.name} - ${meta.headline}</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${`${meta.name} - ${meta.headline}`.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</title>
 <style>${styles}</style></head><body><div class="page">
 ${keepHyphenated(page)}
 </div></body></html>`;

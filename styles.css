@@ -29,3 +29,5 @@
 .cv-live-preview .cv-chip.missing { color: var(--text-warning); }
 .cv-live-preview .cv-kw-hits { color: var(--text-muted); font-size: var(--font-ui-smaller); }
 .cv-live-preview .cv-gear { display: flex; align-items: center; padding: 4px; box-shadow: none; background: transparent; }
+.cv-live-preview .cv-panel { position: relative; }
+.cv-live-preview .cv-kw-copy { position: absolute; top: 2px; right: 8px; display: flex; align-items: center; padding: 4px; box-shadow: none; background: transparent; }

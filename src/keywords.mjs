@@ -138,3 +138,16 @@ export function coverage(cv, posting, { pins = [], limit = 40 } = {}) {
   const matched = terms.filter((t) => t.matched).length;
   return { terms, matched, total: terms.length, percent: terms.length ? Math.round((matched / terms.length) * 100) : 0 };
 }
+
+// Plain-text report of a coverage() result, for pasting into another tool.
+export function formatCoverageReport(r) {
+  const missing = r.terms.filter((t) => !t.matched);
+  const hits = r.terms.filter((t) => t.matched);
+  const lines = [`Keyword coverage: ${r.percent}% (${r.matched}/${r.total})`, "", `Missing (${missing.length}):`];
+  for (const t of missing) lines.push(`- ${t.term}${t.pinned ? " (pinned)" : ` x${t.count}`}`);
+  if (!missing.length) lines.push("- none");
+  lines.push("", `Matched (${hits.length}):`);
+  for (const t of hits) lines.push(`- ${t.term}: ${t.hits} in ${t.sections.map((x) => `${x.name} ${x.count}`).join(", ")}`);
+  if (!hits.length) lines.push("- none");
+  return lines.join("\n") + "\n";
+}

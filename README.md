@@ -93,6 +93,17 @@ node scripts/json-to-md.mjs <resume.json> cv.md   # one-off conversion
 Chrome is auto-detected; set `CHROME_BIN` to use a specific binary. PDF
 metadata is applied unless `--no-metadata` is passed.
 
+## Roadmap (v0.3 candidates)
+
+- **Batch export:** export every note with CV frontmatter in a folder, using the
+  filename template and per-note overrides.
+- **Auto-export on save:** opt-in, debounced, so the PDF in the export folder
+  stays current.
+- **Themes and layout options:** font size, margins, accent color, and section
+  order as settings or frontmatter, with the current layout as the default.
+- **Page-fit help:** show which lines overflow the page and suggest a trim or a
+  spacing adjustment.
+
 ## Known gaps
 
 - Line breaks differ from the react-pdf renderer on a few lines, so rely on

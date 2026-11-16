@@ -11,7 +11,7 @@ import { applyOverrides, readFrontmatter, readOverrides } from "./overrides.mjs"
 import { findChrome } from "./chrome.mjs";
 import { applyMetadata, buildMetadata, hasTextLayer } from "./pdf-meta.mjs";
 import { countLevels, lintCv } from "./lint.mjs";
-import { coverage } from "./keywords.mjs";
+import { coverage, formatCoverageReport } from "./keywords.mjs";
 import css from "./carcharias.css";
 
 const VIEW_TYPE = "cv-live-preview";
@@ -134,6 +134,14 @@ class CvView extends ItemView {
     this.kwText = body.createEl("textarea", { attr: { rows: "5", placeholder: "Paste the job posting here" } });
     this.kwPins = body.createEl("input", { attr: { type: "text", placeholder: "Pin extra terms, comma separated" } });
     this.kwResult = body.createDiv({ cls: "cv-kw-result" });
+    this.kwCopy = this.kwPanel.createEl("button", { cls: "cv-kw-copy clickable-icon", attr: { "aria-label": "Copy keyword coverage" } });
+    setIcon(this.kwCopy, "copy");
+    this.kwCopy.addEventListener("click", async () => {
+      if (!this.kwReport) return;
+      await navigator.clipboard.writeText(this.kwReport);
+      new Notice("Keyword coverage copied", 1500);
+    });
+    this.kwCopy.hide();
     const onInput = () => this.plugin.onPostingEdited(this.kwPath, this.kwText.value, this.kwPins.value);
     this.kwText.addEventListener("input", onInput);
     this.kwPins.addEventListener("input", onInput);
@@ -161,11 +169,15 @@ class CvView extends ItemView {
       this.kwPins.value = posting.pins;
     }
     this.kwResult.empty();
+    this.kwReport = "";
     if (!this.kwText.value.trim() && !splitPins(this.kwPins.value).length) {
       this.kwSummary.setText("Keywords");
+      this.kwCopy.hide();
       return;
     }
     const r = coverage(cv, this.kwText.value, { pins: splitPins(this.kwPins.value) });
+    this.kwReport = formatCoverageReport(r);
+    this.kwCopy.show();
     this.kwSummary.setText(`Keywords: ${r.percent}% (${r.matched}/${r.total})`);
     const missing = r.terms.filter((t) => !t.matched);
     this.kwResult.createDiv({ cls: "cv-kw-head", text: `Coverage ${r.percent}%. Missing ${missing.length}. Click a term to copy it.` });

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { coverage, extractTerms, normalizeToken, tokenize } from "../src/keywords.mjs";
+import { coverage, extractTerms, formatCoverageReport, normalizeToken, tokenize } from "../src/keywords.mjs";
 
 const POSTING = `We need a technical writer with API documentation experience.
 You will write technical documentation for REST APIs. Experience with CI/CD,
@@ -83,4 +83,20 @@ test("pinned terms are always checked", () => {
 test("handles empty input and CVs without frontmatter", () => {
   assert.deepEqual(coverage("", "").terms, []);
   assert.equal(coverage("no frontmatter here", "frontmatter").percent, 100);
+});
+
+test("coverage report lists missing and matched terms as plain text", () => {
+  const r = coverage(CV, POSTING, { pins: ["kubernetes"] });
+  const text = formatCoverageReport(r);
+  assert.match(text, new RegExp(`^Keyword coverage: ${r.percent}% \\(${r.matched}/${r.total}\\)`));
+  assert.match(text, /Missing \(\d+\):/);
+  assert.match(text, /- kubernetes \(pinned\)/);
+  assert.match(text, /Matched \(\d+\):/);
+  assert.match(text, /- .+: \d+ in .+ \d+/);
+  assert.ok(text.endsWith("\n"));
+});
+
+test("coverage report handles an empty result", () => {
+  const text = formatCoverageReport({ terms: [], matched: 0, total: 0, percent: 0 });
+  assert.equal(text, "Keyword coverage: 0% (0/0)\n\nMissing (0):\n- none\n\nMatched (0):\n- none\n");
 });

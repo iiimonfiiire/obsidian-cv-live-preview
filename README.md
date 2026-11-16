@@ -21,13 +21,62 @@ Then enable "CV Live Preview" under Settings > Community plugins.
 2. Run "Open CV preview" from the command palette or the ribbon icon.
 3. The pane re-renders as you type. The banner shows the page fit, and the
    dashed lines mark the minimum bottom margin and the page end.
-4. Run "Export CV as PDF" to write the PDF next to the note.
+4. Run "Export CV as PDF". Where the file goes is set under Settings > Export.
 
-Settings: Chrome path and minimum bottom margin (pt).
+### Preview panels
+
+- The bar shows an error and warning count from the format linter. Expand
+  "Format check" for the list; click a row to jump the editor to that line.
+- "Keywords" takes a pasted job posting (kept per note in the plugin data) and
+  optional pinned terms. It reports coverage, the sections each matched term
+  appears in, and the missing terms. Click a missing term to copy it. Matching
+  is case-insensitive and ignores plural and `-ing` endings.
+
+### Settings
+
+- Export: location (`next-to-note`, fixed `folder`, or `ask` with a save
+  dialog), export folder (absolute or vault-relative; created if missing),
+  filename template, collision handling (`overwrite` or `counter`), action after
+  export (`none`, `reveal`, `open`), PDF metadata on or off.
+- Preview: minimum bottom margin (pt).
+- Chrome: binary path and a Test button. If the path does not exist, Chrome,
+  Chromium, Edge, and Brave are looked up in well-known locations (and
+  `CHROME_BIN`).
+
+The folder picker and save dialog use Electron through `electron.remote` or
+`@electron/remote`. If neither is exposed, the picker shows a notice and the
+export falls back to the configured location.
+
+### Filename template
+
+Default `{name} - {headline}`. Tokens: `{name}`, `{headline}`, `{title}` (note
+name), `{variant}` (frontmatter `variant`), `{date}` and `{date:FORMAT}` with
+`YYYY`, `MM`, `DD`. Illegal characters are removed, whitespace is collapsed, and
+separators left dangling by empty tokens are trimmed. An empty result becomes
+`CV`.
+
+### Per-note overrides
+
+Frontmatter keys override the settings for one note:
+
+| Key | Effect |
+|---|---|
+| `cv-export-folder` | Export to this folder (implies folder mode) |
+| `cv-filename` | Filename template |
+| `cv-pdf-title`, `cv-pdf-author`, `cv-pdf-subject` | PDF metadata |
+| `cv-pdf-keywords` | PDF keywords, comma separated |
+
+### PDF metadata
+
+After Chrome prints, the plugin sets Title (`name - headline`), Author, Subject
+(headline), Keywords (frontmatter `keywords`, else the Skills keywords), and
+Creator/Producer ("CV Live Preview") with `pdf-lib`. Chrome output keeps real
+text with font objects; the export warns if no font objects are found.
 
 ## Markdown format
 
 - Frontmatter: `name`, `headline`, `email`, `phone`, `location`, `website: <url> | <label>`.
+  Optional: `variant`, `keywords`, and the `cv-*` overrides above.
 - Text before the first `##` is the summary.
 - `## Experience` and `## Projects`: `### Company · Position · period`, then bullets.
 - `## Skills`: `### Group`, then a comma-separated keyword line.
@@ -37,15 +86,17 @@ Settings: Chrome path and minimum bottom margin (pt).
 ## Command line
 
 ```
-npm run render -- cv.md out/cv.pdf [--watch] [--html-only]
+npm run render -- cv.md out/cv.pdf [--watch] [--html-only] [--no-metadata]
 node scripts/json-to-md.mjs <resume.json> cv.md   # one-off conversion
 ```
 
-Set `CHROME_BIN` if Chrome is not at the default macOS path.
+Chrome is auto-detected; set `CHROME_BIN` to use a specific binary. PDF
+metadata is applied unless `--no-metadata` is passed.
 
 ## Known gaps
 
 - Line breaks differ from the react-pdf renderer on a few lines, so rely on
   the bottom-margin check, not only the page count.
-- Tests cover section parsing and rendering (`npm test`). The plugin UI and
-  PDF export are not covered by automated tests.
+- Tests (`npm test`) cover rendering, filenames, export paths, the linter,
+  keyword coverage, PDF metadata, and Chrome detection. The plugin UI, Electron
+  dialogs, and the Chrome print step are not covered by automated tests.

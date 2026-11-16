@@ -16,7 +16,7 @@ await build({
   format: "cjs",
   platform: "node",
   target: "es2020",
-  external: ["obsidian", "electron"],
+  external: ["obsidian", "electron", "@electron/remote"],
   loader: { ".css": "text" },
   logLevel: "info",
 });

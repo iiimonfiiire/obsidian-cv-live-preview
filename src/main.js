@@ -1,4 +1,4 @@
-import { FileSystemAdapter, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, normalizePath } from "obsidian";
+import { FileSystemAdapter, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, normalizePath, setIcon } from "obsidian";
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -99,6 +99,9 @@ class CvView extends ItemView {
     this.lintCountEl = bar.createSpan({ cls: "cv-lint-count" });
     const btn = bar.createEl("button", { text: "Export PDF" });
     btn.addEventListener("click", () => this.plugin.exportActive());
+    const gear = bar.createEl("button", { cls: "cv-gear clickable-icon", attr: { "aria-label": "CV Live Preview settings" } });
+    setIcon(gear, "settings");
+    gear.addEventListener("click", () => this.plugin.openSettings());
     this.buildPanels(root);
     this.scroller = root.createDiv({ cls: "cv-scroller" });
     this.sizer = this.scroller.createDiv({ cls: "cv-sizer" });
@@ -464,6 +467,13 @@ export default class CvLivePreviewPlugin extends Plugin {
       await rm(tmp, { recursive: true, force: true });
     }
     return outPath;
+  }
+
+  openSettings() {
+    const setting = this.app.setting;
+    if (!setting?.open || !setting?.openTabById) return new Notice("Open Settings > Community plugins > CV Live Preview.");
+    setting.open();
+    setting.openTabById(this.manifest.id);
   }
 
   async saveSettings() {

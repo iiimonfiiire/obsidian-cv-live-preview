@@ -25,5 +25,5 @@ cpSync(join(here, "manifest.json"), join(dist, "manifest.json"));
 cpSync(join(here, "styles.css"), join(dist, "styles.css"));
 const fonts = join(here, "fonts");
 if (!existsSync(fonts)) throw new Error("fonts missing: run npm run fonts -- <webfontlist.json> first");
-cpSync(fonts, join(dist, "fonts"), { recursive: true });
+cpSync(fonts, join(dist, "fonts"), { recursive: true, dereference: true });
 console.log("built", dist);

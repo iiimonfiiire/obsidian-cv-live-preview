@@ -165,6 +165,12 @@ test("heading links are underlined in the stylesheet", async () => {
   assert.match(css, /\.item-head a\s*\{[^}]*text-decoration:\s*underline/);
 });
 
+test("long position titles span the full width so they do not wrap under the date", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const css = await readFile(new URL("../src/themes/modern.css", import.meta.url), "utf8");
+  assert.match(css, /\.position\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/);
+});
+
 test("hyphenated words are kept unbroken", () => {
   assert.match(html(FULL), /<span class="nb">docs-as-code<\/span>/);
 });

@@ -2,7 +2,7 @@
 
 An Obsidian plugin for writing a CV in Markdown. It renders the note live in a
 side pane, checks the page fit, and exports a PDF through headless Chrome. It
-ships four themes (see "Themes"). Desktop only.
+ships three themes (see "Themes"). Desktop only.
 
 ## Install
 
@@ -66,16 +66,15 @@ separators left dangling by empty tokens are trimmed. An empty result becomes
 | `classic` | The original compact layout, 8.75 pt text | 1 |
 | `a` | Two columns with a sidebar, 10.5 pt text (default) | up to 2 |
 | `b` | Single column; skills, education, and languages follow the experience | up to 2 |
-| `c` | Like `a` with a wider sidebar | up to 2 |
 
 The dropdown in the preview bar writes `cv-theme: <id>` into the note's
 frontmatter. It changes only that line and leaves the rest of the note as is.
 "Default theme" clears the line, so the note follows the default in settings.
-Themes `a`, `b`, and `c` share one stylesheet (`src/themes/modern.css`) and run
+Themes `a` and `b` share one stylesheet (`src/themes/modern.css`) and run
 page numbers ("Page 2 of 2") from page 2. The preview estimates the page count;
 the export notice reports the exact count of the PDF.
 
-#### Page plan for `a`, `b`, and `c`
+#### Page plan for `a` and `b`
 
 Two A4 pages is the intended length, never squeezed to one. The type floors
 (body 10.5 pt, dates and labels 9 pt) hold; to fit, trim content or spacing, not
@@ -105,7 +104,7 @@ Frontmatter keys override the settings for one note:
 
 | Key | Effect |
 |---|---|
-| `cv-theme` | Theme for this note: `classic`, `a`, `b`, or `c` |
+| `cv-theme` | Theme for this note: `classic`, `a`, or `b` |
 | `cv-export-folder` | Export to this folder (implies folder mode) |
 | `cv-filename` | Filename template |
 | `cv-pdf-title`, `cv-pdf-author`, `cv-pdf-subject` | PDF metadata |
@@ -133,7 +132,7 @@ text with font objects; the export warns if no font objects are found.
 ## Command line
 
 ```
-npm run render -- cv.md out/cv.pdf [--theme classic|a|b|c] [--watch] [--html-only] [--no-metadata]
+npm run render -- cv.md out/cv.pdf [--theme classic|a|b] [--watch] [--html-only] [--no-metadata]
 node scripts/json-to-md.mjs <resume.json> cv.md   # one-off conversion
 ```
 

@@ -38,16 +38,6 @@ export const THEMES = [
     geometry: { topFirst: 35, topNext: 32, bottom: 34 },
     linePt: 10.5 * 1.38,
   },
-  {
-    id: "c",
-    label: "Option C, wide sidebar",
-    cssFile: "modern.css",
-    bodyClass: "layout-wide",
-    markup: "modern",
-    maxPages: 2,
-    geometry: { topFirst: 35, topNext: 32, bottom: 34 },
-    linePt: 10.5 * 1.38,
-  },
 ];
 
 export const THEME_IDS = THEMES.map((t) => t.id);

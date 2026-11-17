@@ -36,8 +36,8 @@ const render = (id, src = CV) => {
   return renderHtml(src, { css: "", fontUrl: (f) => f, theme });
 };
 
-test("registry has four themes and a valid default", () => {
-  assert.deepEqual(THEME_IDS, ["classic", "a", "b", "c"]);
+test("registry has three themes and a valid default", () => {
+  assert.deepEqual(THEME_IDS, ["classic", "a", "b"]);
   assert.ok(isThemeId(DEFAULT_THEME));
   assert.equal(getTheme("nope").id, DEFAULT_THEME);
   assert.equal(getTheme("", "classic").id, "classic");
@@ -54,7 +54,6 @@ test("every theme stylesheet exists", async () => {
 test("layout variants set a body class", () => {
   assert.match(render("a"), /<body>/);
   assert.match(render("b"), /<body class="layout-single">/);
-  assert.match(render("c"), /<body class="layout-wide">/);
 });
 
 test("classic keeps the original one-page markup", () => {
@@ -92,7 +91,7 @@ test("setFrontmatterKey edits one line and keeps the rest byte for byte", () => 
   const src = "---\nname: Jane\nwebsite: https://a.example | A\n---\nBody\n";
   const added = setFrontmatterKey(src, "cv-theme", "b");
   assert.equal(added, "---\nname: Jane\nwebsite: https://a.example | A\ncv-theme: b\n---\nBody\n");
-  assert.equal(setFrontmatterKey(added, "cv-theme", "c"), added.replace("cv-theme: b", "cv-theme: c"));
+  assert.equal(setFrontmatterKey(added, "cv-theme", "a"), added.replace("cv-theme: b", "cv-theme: a"));
   assert.equal(setFrontmatterKey(added, "cv-theme", ""), src);
   assert.equal(setFrontmatterKey("no frontmatter", "cv-theme", "a"), "no frontmatter");
   const crlf = "---\r\nname: Jane\r\n---\r\nBody";

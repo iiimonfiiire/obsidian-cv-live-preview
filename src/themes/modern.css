@@ -11,9 +11,8 @@
   /* Colour */
   --page-bg:      #f2f5f6;   /* set to #ffffff for a white print copy */
   --ink:          #1c272d;
-  --muted:        #4f5f67;   /* 6.0:1 on the page background */
-  --accent:       #e5510d;
-  --accent-ink:   #c2410c;   /* darker accent for small text (labels) */
+  --muted:        #5b6b73;
+  --accent:       #e5510d;   /* the only orange; no darker variant */
   --rule:         #c9d3d7;   /* hairline colour */
 
   /* Families */
@@ -30,12 +29,13 @@
   --fs-small:     9.5pt;     /* fluency, secondary text */
   --fs-mono:      9pt;       /* dates, contact */
   --fs-label:     9pt;       /* skill-group labels */
+  --fs-foot:      8pt;       /* page-number footer: the only text under 9pt */
   --lh-body:      1.38;
   --lh-tight:     1.15;
 
   /* Tracking */
   --track-name:   0.06em;
-  --track-h2:     0.12em;
+  --track-h2:     0.08em;    /* wider breaks copied text ("E D U C AT I O N") */
   --track-label:  0.08em;
 
   /* Spacing scale (pt) */
@@ -80,10 +80,10 @@
   /* Slim running footer on every page except the first */
   @bottom-right {
     content: "Page " counter(page) " of " counter(pages);
-    font: 500 8pt/1 "JetBrains Mono", monospace;
-    color: #4f5f67;
+    font: 500 var(--fs-foot)/1 var(--font-mono);
+    color: var(--muted);
     vertical-align: top;
-    padding-top: 10pt;
+    padding-top: var(--s4);
   }
 }
 @page :first {
@@ -257,7 +257,7 @@ a      { color: inherit; text-decoration-color: var(--accent); text-underline-of
   font: 700 var(--fs-label)/var(--lh-tight) var(--font-body);
   text-transform: uppercase;
   letter-spacing: var(--track-label);
-  color: var(--accent-ink);
+  color: var(--accent);
 }
 .kw { margin: 0; }
 

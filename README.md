@@ -75,6 +75,30 @@ Themes `a`, `b`, and `c` share one stylesheet (`src/themes/modern.css`) and run
 page numbers ("Page 2 of 2") from page 2. The preview estimates the page count;
 the export notice reports the exact count of the PDF.
 
+#### Page plan for `a`, `b`, and `c`
+
+Two A4 pages is the intended length, never squeezed to one. The type floors
+(body 10.5 pt, dates and labels 9 pt) hold; to fit, trim content or spacing, not
+type size.
+
+- Page 1: header, summary, the first two jobs complete, and the whole sidebar.
+- Page 2: starts with the third job, then the remaining jobs and Projects. It
+  has no repeated header, only a top margin and a "Page X of Y" footer.
+- If page 1 overflows, in order: shorten two-line bullets to one line, drop the
+  weakest bullet of job 2 (keep at least 5), lower `--s5` to as low as 11 pt,
+  shorten the summary. Never shrink fonts, narrow margins, or split job 2.
+- Do not remove the break rules in `modern.css`: headings and entry heads stay
+  with the text after them, and bullets, skill groups, education entries, and
+  languages never split.
+- Design values change only through the custom properties at the top of
+  `modern.css`. For a white print copy, set `--page-bg` to `#ffffff`.
+
+After a change, print and check: exactly 2 pages, job 2's last bullet ends page
+1, job 3's company opens page 2, the sidebar ends on page 1, page 1 has five
+working links, and copied text has no broken words such as "L ANGUAGES" (reduce
+`--track-h2` if it does). The preview's page estimate does not check where the
+split falls; check the PDF.
+
 ### Per-note overrides
 
 Frontmatter keys override the settings for one note:

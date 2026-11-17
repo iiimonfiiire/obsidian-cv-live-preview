@@ -20,6 +20,7 @@ const MAP = {
   "cv-pdf-author": "pdfAuthor",
   "cv-pdf-subject": "pdfSubject",
   "cv-pdf-keywords": "pdfKeywords",
+  "cv-theme": "theme",
 };
 
 export function readOverrides(src) {
@@ -27,6 +28,25 @@ export function readOverrides(src) {
   const out = {};
   for (const [key, field] of Object.entries(MAP)) if (meta[key]) out[field] = meta[key];
   return out;
+}
+
+// Set or remove one frontmatter line without touching the rest of the note.
+// value null/"" removes the key. Returns the text unchanged when there is no frontmatter.
+export function setFrontmatterKey(src, key, value) {
+  const text = String(src);
+  const m = text.match(/^---(\r?\n)([\s\S]*?)(\r?\n)---/);
+  if (!m) return text;
+  const eol = m[1];
+  const lines = m[2].split(/\r?\n/);
+  const at = lines.findIndex((l) => l.slice(0, Math.max(l.indexOf(":"), 0)).trim() === key);
+  if (value === null || value === undefined || value === "") {
+    if (at >= 0) lines.splice(at, 1);
+  } else if (at >= 0) {
+    lines[at] = `${key}: ${value}`;
+  } else {
+    lines.push(`${key}: ${value}`);
+  }
+  return `---${eol}${lines.join(eol)}${m[3]}---${text.slice(m[0].length)}`;
 }
 
 // A per-note export folder implies folder mode.

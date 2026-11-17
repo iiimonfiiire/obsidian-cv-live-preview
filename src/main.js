@@ -7,20 +7,25 @@ import { dirname, join } from "node:path";
 import { parseCv, renderHtml } from "./render-core.mjs";
 import { renderFilename } from "./filename.mjs";
 import { resolveCollision, resolveTarget } from "./export-path.mjs";
-import { applyOverrides, readFrontmatter, readOverrides } from "./overrides.mjs";
+import { applyOverrides, readFrontmatter, readOverrides, setFrontmatterKey } from "./overrides.mjs";
+import { THEMES, getTheme } from "./themes.mjs";
 import { findChrome } from "./chrome.mjs";
-import { applyMetadata, buildMetadata, hasTextLayer } from "./pdf-meta.mjs";
+import { applyMetadata, buildMetadata, countPages, hasTextLayer } from "./pdf-meta.mjs";
 import { countLevels, lintCv } from "./lint.mjs";
+import { fitPages } from "./pagination.mjs";
 import { coverage, formatCoverageReport } from "./keywords.mjs";
-import css from "./carcharias.css";
+import classicCss from "./themes/classic.css";
+import modernCss from "./themes/modern.css";
+
+const THEME_CSS = { "classic.css": classicCss, "modern.css": modernCss };
+const themeCss = (theme) => THEME_CSS[theme.cssFile];
 
 const VIEW_TYPE = "cv-live-preview";
 const A4_W = 793.7; // CSS px at 96 dpi
 const A4_H = 1122.5;
-const PX_TO_PT = 0.75;
-const LINE_PT = 8.75 * 1.25; // body font size x line height in the template
 
 const DEFAULTS = {
+  defaultTheme: "a",
   chromePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   minBottomMarginPt: 30,
   exportMode: "next-to-note",
@@ -97,6 +102,10 @@ class CvView extends ItemView {
     const bar = root.createDiv({ cls: "cv-bar" });
     this.statusEl = bar.createSpan({ cls: "cv-status", text: "Open a CV note to preview it." });
     this.lintCountEl = bar.createSpan({ cls: "cv-lint-count" });
+    this.themeSelect = bar.createEl("select", { cls: "dropdown cv-theme", attr: { "aria-label": "CV theme for this note" } });
+    this.themeSelect.createEl("option", { value: "", text: "Default theme" });
+    for (const t of THEMES) this.themeSelect.createEl("option", { value: t.id, text: t.label });
+    this.themeSelect.addEventListener("change", () => this.plugin.setNoteTheme(this.themeSelect.value));
     const btn = bar.createEl("button", { text: "Export PDF" });
     btn.addEventListener("click", () => this.plugin.exportActive());
     const gear = bar.createEl("button", { cls: "cv-gear clickable-icon", attr: { "aria-label": "CV Live Preview settings" } });
@@ -110,8 +119,11 @@ class CvView extends ItemView {
     this.frame.setAttr("sandbox", "allow-same-origin");
     this.marginGuide = this.stage.createDiv({ cls: "cv-guide margin" });
     this.marginGuide.createSpan({ text: "bottom margin" });
-    this.pageGuide = this.stage.createDiv({ cls: "cv-guide page" });
-    this.pageGuide.createSpan({ text: "page end" });
+    this.pageGuides = [0, 1].map(() => {
+      const el = this.stage.createDiv({ cls: "cv-guide page" });
+      el.createSpan();
+      return el;
+    });
     this.observer = new ResizeObserver(() => this.rescale());
     this.observer.observe(this.scroller);
     this.rescale();
@@ -212,7 +224,11 @@ class CvView extends ItemView {
     this.sizer.style.height = `${this.contentHeight * scale}px`;
   }
 
-  async show(html) {
+  setThemeChoice(id) {
+    this.themeSelect.value = id;
+  }
+
+  async show(html, theme) {
     const token = (this.token = (this.token || 0) + 1);
     await new Promise((resolve) => {
       this.frame.onload = resolve;
@@ -225,21 +241,25 @@ class CvView extends ItemView {
     const cols = doc.querySelector(".cols");
     const bottomPx = cols.getBoundingClientRect().bottom;
     this.contentHeight = Math.max(A4_H, doc.documentElement.scrollHeight);
+    const fit = fitPages({
+      contentBottomPx: bottomPx,
+      minBottomMarginPt: this.plugin.settings.minBottomMarginPt,
+      geometry: theme.geometry,
+      maxPages: theme.maxPages,
+      linePt: theme.linePt,
+    });
+    this.marginGuide.style.top = `${fit.marginGuideY}px`;
+    this.pageGuides.forEach((el, i) => {
+      const g = fit.guides[i];
+      el.style.display = g ? "" : "none";
+      if (!g) return;
+      el.style.top = `${g.y}px`;
+      el.firstChild.setText(g.label);
+    });
+    this.contentHeight = Math.max(this.contentHeight, fit.guides[fit.guides.length - 1].y);
     this.frame.style.height = `${this.contentHeight}px`;
-    const minMarginPx = this.plugin.settings.minBottomMarginPt / PX_TO_PT;
-    this.marginGuide.style.top = `${A4_H - minMarginPx}px`;
-    this.pageGuide.style.top = `${A4_H}px`;
     this.rescale();
-
-    const marginPt = (A4_H - bottomPx) * PX_TO_PT;
-    if (marginPt < 0) {
-      const lines = Math.ceil(-marginPt / LINE_PT);
-      this.setStatus(`Overflows the page by ${Math.round(-marginPt)}pt (about ${lines} line${lines === 1 ? "" : "s"})`, "over");
-    } else if (marginPt < this.plugin.settings.minBottomMarginPt) {
-      this.setStatus(`Fits, but the bottom margin is only ${Math.round(marginPt)}pt`, "tight");
-    } else {
-      this.setStatus(`Fits one page, ${Math.round(marginPt)}pt bottom margin`, "ok");
-    }
+    this.setStatus(fit.text, fit.level);
   }
 
   showMessage(text) {
@@ -344,7 +364,7 @@ export default class CvLivePreviewPlugin extends Plugin {
   rememberContext(text) {
     try {
       const { meta } = parseCv(text);
-      this.lastCtx = { name: meta.name, headline: meta.headline, title: this.currentFile?.basename ?? "", variant: readFrontmatter(text).variant ?? "" };
+      this.lastCtx = { name: meta.name, headline: meta.headline, title: this.currentFile?.basename ?? "", variant: readFrontmatter(text).variant ?? "", fields: readFrontmatter(text) };
     } catch {
       // keep the previous context
     }
@@ -372,12 +392,28 @@ export default class CvLivePreviewPlugin extends Plugin {
     if (!view) return;
     view.setLint(lintCv(text));
     if (this.currentFile) view.setKeywords(this.currentFile.path, this.getPosting(this.currentFile.path), text);
+    const choice = readOverrides(text).theme ?? "";
+    const theme = this.resolveTheme(text);
+    view.setThemeChoice(THEMES.some((t) => t.id === choice.toLowerCase()) ? choice.toLowerCase() : "");
     try {
-      const html = renderHtml(text, { css, fontUrl: (f) => this.fontResourceUrl(f) });
-      view.show(html);
+      const html = renderHtml(text, { css: themeCss(theme), fontUrl: (f) => this.fontResourceUrl(f), preview: true, theme });
+      view.show(html, theme);
     } catch (e) {
       view.showMessage(`Cannot render: ${e.message}`);
     }
+  }
+
+  resolveTheme(text) {
+    return getTheme(readOverrides(text).theme, this.settings.defaultTheme);
+  }
+
+  // Writes cv-theme into the note's frontmatter, touching only that line.
+  // An empty id removes the override so the note follows the default theme.
+  async setNoteTheme(id) {
+    const file = this.currentFile;
+    if (!file) return;
+    await this.app.vault.process(file, (data) => setFrontmatterKey(data, "cv-theme", id));
+    this.follow(file);
   }
 
   fontResourceUrl(file) {
@@ -397,18 +433,20 @@ export default class CvLivePreviewPlugin extends Plugin {
     try {
       const text = await this.readText(file);
       if (!looksLikeCv(text)) return new Notice("This note has no CV frontmatter (name and headline).");
-      const out = await this.exportPdf(file, text);
-      if (!out) return new Notice("Export cancelled.");
-      this.announceExport(out);
+      const result = await this.exportPdf(file, text);
+      if (!result) return new Notice("Export cancelled.");
+      this.announceExport(result);
     } catch (e) {
       new Notice(`PDF export failed: ${e.message}`, 8000);
     }
   }
 
-  announceExport(out) {
+  announceExport({ outPath: out, pages, maxPages }) {
     const base = this.basePath();
     const shown = out.startsWith(base) ? out.slice(base.length + 1) : out;
-    const notice = new Notice(`CV exported: ${shown} (click to reveal)`, 8000);
+    const count = pages ? `${pages} page${pages === 1 ? "" : "s"}` : "";
+    const over = pages > maxPages ? ` (over the ${maxPages}-page budget)` : "";
+    const notice = new Notice(`CV exported${count ? `, ${count}${over}` : ""}: ${shown} (click to reveal)`, 8000);
     notice.noticeEl?.addEventListener("click", () => electron()?.shell?.showItemInFolder(out));
     const shell = electron()?.shell;
     if (this.settings.afterExport === "reveal") shell?.showItemInFolder(out);
@@ -438,6 +476,7 @@ export default class CvLivePreviewPlugin extends Plugin {
       headline: meta.headline,
       title: file.basename,
       variant: readFrontmatter(text).variant,
+      fields: readFrontmatter(text),
       date: new Date(),
     })}.pdf`;
     const noteDir = file.parent?.path === "/" ? "" : (file.parent?.path ?? "");
@@ -448,8 +487,10 @@ export default class CvLivePreviewPlugin extends Plugin {
     const chrome = findChrome({ configured: this.settings.chromePath, platform: process.platform, env: process.env, exists: existsSync });
     if (!chrome) throw new Error("No Chrome, Chromium, Edge, or Brave found. Set the Chrome path in settings.");
 
-    const html = renderHtml(text, { css, fontUrl: (f) => `file://${join(pluginDir, "fonts", f)}` });
+    const theme = this.resolveTheme(text);
+    const html = renderHtml(text, { css: themeCss(theme), fontUrl: (f) => `file://${join(pluginDir, "fonts", f)}`, theme });
     const tmp = await mkdtemp(join(tmpdir(), "cv-live-preview-"));
+    let pages = 0;
     try {
       const htmlPath = join(tmp, "cv.html");
       const rawPdf = join(tmp, "cv.pdf");
@@ -475,10 +516,11 @@ export default class CvLivePreviewPlugin extends Plugin {
       if (this.settings.embedMetadata) bytes = await applyMetadata(bytes, buildMetadata(text, overrides));
       await mkdir(dirname(outPath), { recursive: true });
       await writeFile(outPath, bytes);
+      pages = await countPages(bytes);
     } finally {
       await rm(tmp, { recursive: true, force: true });
     }
-    return outPath;
+    return { outPath, pages, maxPages: theme.maxPages };
   }
 
   openSettings() {
@@ -541,7 +583,7 @@ class CvSettingTab extends PluginSettingTab {
     const updatePreview = () => preview.setText(`Filename preview: ${this.plugin.previewFilename()}`);
     new Setting(containerEl)
       .setName("Filename template")
-      .setDesc("Tokens: {name} {headline} {title} {variant} {date} {date:YYYY-MM-DD}. A note can override it with cv-filename.")
+      .setDesc("Tokens: {name} {headline} {title} {variant} {date} {date:YYYY-MM-DD}, or any frontmatter key such as {company}. A note can override it with cv-filename.")
       .addText((t) =>
         t.setValue(settings.filenameTemplate).onChange(async (v) => {
           settings.filenameTemplate = v;
@@ -580,6 +622,21 @@ class CvSettingTab extends PluginSettingTab {
           settings.embedMetadata = v;
           await save();
         }),
+      );
+
+    new Setting(containerEl).setName("Theme").setHeading();
+    new Setting(containerEl)
+      .setName("Default theme")
+      .setDesc("Used by notes without a cv-theme line. Pick a theme per note from the preview bar, or set cv-theme to classic, a, b, or c.")
+      .addDropdown((d) =>
+        d
+          .addOptions(Object.fromEntries(THEMES.map((t) => [t.id, t.label])))
+          .setValue(getTheme(settings.defaultTheme).id)
+          .onChange(async (v) => {
+            settings.defaultTheme = v;
+            await save();
+            this.plugin.refreshView();
+          }),
       );
 
     new Setting(containerEl).setName("Preview").setHeading();

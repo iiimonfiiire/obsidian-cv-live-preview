@@ -1,6 +1,7 @@
 .cv-live-preview { display: flex; flex-direction: column; padding: 0; }
 .cv-live-preview .cv-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--background-modifier-border); font-size: var(--font-ui-small); }
 .cv-live-preview .cv-status { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cv-live-preview .cv-theme { flex: 0 0 auto; max-width: 11em; font-size: var(--font-ui-small); }
 .cv-live-preview .cv-status.ok { color: var(--text-success); }
 .cv-live-preview .cv-status.tight { color: var(--text-warning); }
 .cv-live-preview .cv-status.over { color: var(--text-error); }

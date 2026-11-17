@@ -1,7 +1,9 @@
 // Format linter for the CV Markdown. Pure, never throws, 1-based line numbers.
 import { PERIOD } from "./render-core.mjs";
+import { THEME_IDS, isThemeId } from "./themes.mjs";
 
-export const REQUIRED_KEYS = ["name", "headline", "email", "phone", "location", "website"];
+// location is optional: only the classic theme prints it.
+export const REQUIRED_KEYS = ["name", "headline", "email", "phone", "website"];
 export const KNOWN_SECTIONS = [
   "Experience",
   "Projects",
@@ -44,6 +46,16 @@ function lintFrontmatter(lines, out) {
     out.push({ level: "error", line: seen.website.line, message: "website must be `url | label`." });
   } else if (web && !/^https?:\/\//.test(web)) {
     out.push({ level: "warn", line: seen.website.line, message: "website URL should start with http:// or https://." });
+  }
+  for (const key of ["linkedin", "github"]) {
+    const v = seen[key]?.value;
+    if (v && !/^https?:\/\/\S+/.test(v.split("|")[0].trim())) {
+      out.push({ level: "warn", line: seen[key].line, message: `${key} should be a URL starting with http:// or https://.` });
+    }
+  }
+  const theme = seen["cv-theme"]?.value.replace(/^(["'])(.*)\1$/, "$2");
+  if (theme && !isThemeId(theme)) {
+    out.push({ level: "warn", line: seen["cv-theme"].line, message: `cv-theme "${theme}" is not one of ${THEME_IDS.join(", ")}.` });
   }
   const mail = seen.email?.value;
   if (mail && !/^\S+@\S+\.\S+$/.test(mail)) {

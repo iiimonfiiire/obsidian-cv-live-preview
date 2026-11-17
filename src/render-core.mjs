@@ -1,6 +1,7 @@
 // Core: Markdown CV -> HTML (Carcharias-style). No Node APIs, so it runs in the
 // CLI and inside the Obsidian plugin bundle.
 import { marked } from "marked";
+import { getTheme } from "./themes.mjs";
 
 export function parseCv(src) {
   const m = src.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
@@ -36,24 +37,80 @@ function splitHead(head) {
 }
 
 const ICON = {
+  mail: '<rect x="1.75" y="3.25" width="12.5" height="9.5" rx="1.5"/><path d="M2.25 4.25 8 8.75l5.75-4.5"/>',
+  phone:
+    '<path d="M3.2 1.9h2.3l1.1 3-1.5 1.1a8 8 0 0 0 3.9 3.9l1.1-1.5 3 1.1v2.3a1.4 1.4 0 0 1-1.5 1.4A11.6 11.6 0 0 1 1.8 3.4a1.4 1.4 0 0 1 1.4-1.5Z"/>',
+  globe:
+    '<circle cx="8" cy="8" r="6.25"/><path d="M1.75 8h12.5M8 1.75c1.8 1.9 2.6 4 2.6 6.25S9.8 12.35 8 14.25C6.2 12.35 5.4 10.25 5.4 8S6.2 3.65 8 1.75Z"/>',
+  linkedin:
+    '<rect x="1.75" y="1.75" width="12.5" height="12.5" rx="2"/><path d="M5 7v4.5M5 4.75v.01M8 11.5V7m0 2.2c0-1.3.9-2.2 2-2.2s1.6.8 1.6 2v2.5"/>',
+  github:
+    '<path d="M6 14.25v-2.1c-2.6.6-3.1-1.1-3.1-1.1M10 14.25v-2.3c0-.7-.2-1.1-.6-1.4 2-.2 3.6-1 3.6-3.9 0-.8-.3-1.5-.8-2 .1-.3.3-1.1-.1-2.1 0 0-.7-.2-2.1.8a7 7 0 0 0-3.8 0C4.8 2.2 4.1 2.4 4.1 2.4c-.4 1-.2 1.8-.1 2.1-.5.5-.8 1.2-.8 2 0 2.9 1.6 3.7 3.6 3.9-.4.3-.6.8-.6 1.4"/>',
+};
+const icon = (n) =>
+  `<span class="ic" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg></span>`;
+
+const escAttr = (v) => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const escText = (v) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+// "url | label" or a bare URL. A bare URL's label is the URL without scheme, www, and trailing slash.
+export function parseLink(value) {
+  const [url, label] = String(value || "").split("|").map((p) => p.trim());
+  if (!url) return null;
+  return { url, label: label || url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") };
+}
+
+function header(meta) {
+  const row = (ic, inner) => `<div class="contact-row">${icon(ic)}${inner}</div>`;
+  const link = (ic, value) => {
+    const l = parseLink(value);
+    return l ? row(ic, `<a href="${escAttr(l.url)}">${escText(l.label)}</a>`) : "";
+  };
+  const rows = [
+    row("mail", `<a href="mailto:${meta.email}">${meta.email}</a>`),
+    row("phone", `<a href="tel:${meta.phone}">${meta.phone}</a>`),
+    link("globe", meta.website),
+    link("linkedin", meta.linkedin),
+    link("github", meta.github),
+  ].filter(Boolean);
+  return `<header>
+  <h1>${meta.name}</h1>
+  <p class="headline">${meta.headline}</p>
+  <div class="contact">
+    ${rows.join("\n    ")}
+  </div>
+  <hr class="rule">
+</header>`;
+}
+
+// The classic theme keeps its original one-page markup (location row, stacked
+// title line, absolutely positioned rule), so its stylesheet is untouched.
+const CLASSIC_ICON = {
   mail: '<path d="M2 4h12v8H2z M2 4l6 5 6-5"/>',
   pin: '<path d="M8 14s4.5-4 4.5-7.5a4.5 4.5 0 0 0-9 0C3.5 10 8 14 8 14z"/><circle cx="8" cy="6.5" r="1.6"/>',
   phone: '<path d="M3.5 2h3l1 3-1.8 1.2a8 8 0 0 0 3.1 3.1L10 7.5l3 1v3a1.5 1.5 0 0 1-1.6 1.5A10.5 10.5 0 0 1 2 3.6 1.5 1.5 0 0 1 3.5 2z"/>',
   globe: '<circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/>',
+  linkedin: ICON.linkedin,
+  github: ICON.github,
 };
-const icon = (n) =>
-  `<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
+const classicIcon = (n) =>
+  `<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${CLASSIC_ICON[n]}</svg>`;
 
-function header(meta) {
-  const [url, label] = meta.website.split("|").map((s) => s.trim());
-  const row = (ic, inner) => `<div class="contact-row">${icon(ic)}${inner}</div>`;
+function headerClassic(meta) {
+  const row = (ic, inner) => `<div class="contact-row">${classicIcon(ic)}${inner}</div>`;
+  const link = (ic, value) => {
+    const l = parseLink(value);
+    return l ? row(ic, `<a href="${escAttr(l.url)}">${escText(l.label)}</a>`) : "";
+  };
   return `<header>
   <div class="id"><h1>${meta.name}</h1><p class="headline">${meta.headline}</p></div>
   <div class="contact">
     ${row("mail", `<a href="mailto:${meta.email}">${meta.email}</a>`)}
-    ${row("pin", `<span>${meta.location}</span>`)}
+    ${meta.location ? row("pin", `<span>${meta.location}</span>`) : ""}
     ${row("phone", `<a href="tel:${meta.phone}">${meta.phone}</a>`)}
-    ${row("globe", `<a href="${url}">${label}</a>`)}
+    ${link("globe", meta.website)}
+    ${link("linkedin", meta.linkedin)}
+    ${link("github", meta.github)}
   </div>
   <div class="rule"></div>
 </header>`;
@@ -61,23 +118,33 @@ function header(meta) {
 
 const section = (title, inner) => `<section><h2>${title}</h2>${inner}</section>`;
 
-function experience(text) {
+function itemHead(classic, titleHtml, posHtml, period) {
+  if (classic) {
+    return `<div class="item-head"><div class="title"><span class="company">${titleHtml}</span>${
+      posHtml ? `<span class="sep"> • </span><span class="position">${posHtml}</span>` : ""
+    }</div><div class="date">${period}</div></div>`;
+  }
+  return `<div class="item-head"><span class="company">${titleHtml}</span>${
+    posHtml ? `<span class="position">${posHtml}</span>` : ""
+  }<span class="date">${period}</span></div>`;
+}
+
+function experience(text, classic) {
   return items(text)
     .map(({ head, body }) => {
       const { parts, period } = splitHead(head);
       const [company, ...pos] = parts;
-      return `<article><div class="item-head"><div class="title"><span class="company">${inline(company)}</span>${
-        pos.length ? `<span class="sep"> • </span><span class="position">${inline(pos.join(" · "))}</span>` : ""
-      }</div><div class="date">${period}</div></div>${block(body)}</article>`;
+      const posHtml = pos.length ? inline(pos.join(" · ")) : "";
+      return `<article>${itemHead(classic, inline(company), posHtml, period)}${block(body)}</article>`;
     })
     .join("");
 }
 
-function projects(text) {
+function projects(text, classic) {
   return items(text)
     .map(({ head, body }) => {
       const { parts, period } = splitHead(head);
-      return `<article><div class="item-head"><div class="title"><span class="company">${inline(parts.join(" · "))}</span></div><div class="date">${period}</div></div>${block(body)}</article>`;
+      return `<article>${itemHead(classic, inline(parts.join(" · ")), "", period)}${block(body)}</article>`;
     })
     .join("");
 }
@@ -94,12 +161,15 @@ function skills(text) {
     .join("");
 }
 
-function education(text) {
+function education(text, classic) {
   return items(text)
     .map(({ head }) => {
       const { parts, period } = splitHead(head);
       const [degree, area, school] = parts;
-      return `<article class="edu"><div class="degree">${inline(`${degree} ${area}`)}</div><div class="school">${inline(school)}</div><div class="date">${period}</div></article>`;
+      if (classic) {
+        return `<article class="edu"><div class="degree">${inline(`${degree} ${area}`)}</div><div class="school">${inline(school)}</div><div class="date">${period}</div></article>`;
+      }
+      return `<div class="edu"><span class="degree">${inline(`${degree} ${area}`)}</span><span class="date">${period}</span><p class="school">${inline(school)}</p></div>`;
     })
     .join("");
 }
@@ -126,27 +196,32 @@ function keepHyphenated(html) {
     .join("");
 }
 
-export function renderHtml(src, { css, fontUrl }) {
+// preview: true marks <html class="preview"> so the stylesheet skips the browser sheet simulation.
+// theme: an entry of THEMES (themes.mjs); css must be that theme's stylesheet.
+export function renderHtml(src, { css, fontUrl, preview = false, theme = getTheme() }) {
   const { meta, summary, sections } = parseCv(src);
+  const classic = theme.markup === "classic";
   const styles = css.replace(/FONTDIR\/([\w-]+\.ttf)/g, (_, f) => fontUrl(f));
   const main = [
-    sections.Experience && section("Experience", experience(sections.Experience)),
-    sections.Projects && section("Projects", projects(sections.Projects)),
+    sections.Experience && section("Experience", experience(sections.Experience, classic)),
+    sections.Projects && section("Projects", projects(sections.Projects, classic)),
   ].join("");
   const side = [
     sections.Technical && section("Technical", block(sections.Technical)),
     sections["Open source and community"] &&
       section("Open source and community", block(sections["Open source and community"])),
     sections.Skills && section("Skills", skills(sections.Skills)),
-    sections.Education && section("Education", education(sections.Education)),
+    sections.Education && section("Education", education(sections.Education, classic)),
     sections.Languages && section("Languages", languages(sections.Languages)),
     sections["Fun fact"] && section("Fun fact", block(sections["Fun fact"])),
   ].join("");
-  const page = `${header(meta)}
+  const page = `${classic ? headerClassic(meta) : header(meta)}
 <div class="featured">${block(summary)}</div>
 <div class="cols"><main>${main}</main><aside>${side}</aside></div>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${`${meta.name} - ${meta.headline}`.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</title>
-<style>${styles}</style></head><body><div class="page">
-${keepHyphenated(page)}
-</div></body></html>`;
+  const body = classic ? `<div class="page">\n${keepHyphenated(page)}\n</div>` : keepHyphenated(page);
+  const bodyAttr = theme.bodyClass ? ` class="${theme.bodyClass}"` : "";
+  return `<!doctype html><html lang="en"${preview ? ' class="preview"' : ""}><head><meta charset="utf-8"><title>${`${meta.name} - ${meta.headline}`.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</title>
+<style>${styles}</style></head><body${bodyAttr}>
+${body}
+</body></html>`;
 }

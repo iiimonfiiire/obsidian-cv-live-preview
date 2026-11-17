@@ -46,7 +46,7 @@ async function build(mdPath, pdfPath, { htmlOnly, metadata, themeId }) {
 
 const [, , mdPath, pdfPath, ...flags] = process.argv;
 if (!mdPath || !pdfPath) {
-  console.error("usage: render.mjs <cv.md> <out.pdf> [--theme classic|a|b|c] [--html-only] [--watch] [--no-metadata]");
+  console.error("usage: render.mjs <cv.md> <out.pdf> [--theme classic|a|b] [--html-only] [--watch] [--no-metadata]");
   process.exit(1);
 }
 const at = flags.indexOf("--theme");

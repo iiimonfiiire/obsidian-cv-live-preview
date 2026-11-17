@@ -226,7 +226,7 @@ article + article { margin-top: var(--s5); }
   page-break-after: avoid;
 }
 .company  { grid-column: 1; font-weight: 700; font-size: var(--fs-company); line-height: var(--lh-tight); }
-.position { grid-column: 1; grid-row: 2; font-weight: 500; color: var(--muted); margin-top: var(--s1); }
+.position { grid-column: 1 / -1; grid-row: 2;   /* full width so long titles do not wrap under the date */ font-weight: 500; color: var(--muted); margin-top: var(--s1); }
 .item-head .date { grid-column: 2; grid-row: 1; }
 .item-head a { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 2pt; }
 
@@ -290,10 +290,7 @@ aside section > p { margin: 0; }
 .layout-single .skill { display: grid; grid-template-columns: 30% 1fr; gap: var(--s3); }
 .layout-single .skill-name { margin: 1pt 0 0; }
 
-/* ---------- 11. Option C: wider sidebar ------------------------------- */
-.layout-wide { --aside-w: 37%; }
-
-/* ---------- 12. Black-and-white safety -------------------------------- */
+/* ---------- 11. Black-and-white safety -------------------------------- */
 /* Nothing relies on orange alone: headings are bold caps, dates are mono,
    links stay underlined in entry headings and readable as plain text. */
 @media print {

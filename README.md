@@ -52,7 +52,9 @@ export falls back to the configured location.
 ### Filename template
 
 Default `{name} - {headline}`. Tokens: `{name}`, `{headline}`, `{title}` (note
-name), `{variant}` (frontmatter `variant`), `{date}` and `{date:FORMAT}` with
+name), `{variant}` (frontmatter `variant`), any other frontmatter key such as
+`{company}` (a missing or empty key, and the empty `()` it leaves, are dropped;
+built-in tokens win over a same-named key), `{date}` and `{date:FORMAT}` with
 `YYYY`, `MM`, `DD`. Illegal characters are removed, whitespace is collapsed, and
 separators left dangling by empty tokens are trimmed. An empty result becomes
 `CV`.

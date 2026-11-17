@@ -364,7 +364,7 @@ export default class CvLivePreviewPlugin extends Plugin {
   rememberContext(text) {
     try {
       const { meta } = parseCv(text);
-      this.lastCtx = { name: meta.name, headline: meta.headline, title: this.currentFile?.basename ?? "", variant: readFrontmatter(text).variant ?? "" };
+      this.lastCtx = { name: meta.name, headline: meta.headline, title: this.currentFile?.basename ?? "", variant: readFrontmatter(text).variant ?? "", fields: readFrontmatter(text) };
     } catch {
       // keep the previous context
     }
@@ -476,6 +476,7 @@ export default class CvLivePreviewPlugin extends Plugin {
       headline: meta.headline,
       title: file.basename,
       variant: readFrontmatter(text).variant,
+      fields: readFrontmatter(text),
       date: new Date(),
     })}.pdf`;
     const noteDir = file.parent?.path === "/" ? "" : (file.parent?.path ?? "");
@@ -582,7 +583,7 @@ class CvSettingTab extends PluginSettingTab {
     const updatePreview = () => preview.setText(`Filename preview: ${this.plugin.previewFilename()}`);
     new Setting(containerEl)
       .setName("Filename template")
-      .setDesc("Tokens: {name} {headline} {title} {variant} {date} {date:YYYY-MM-DD}. A note can override it with cv-filename.")
+      .setDesc("Tokens: {name} {headline} {title} {variant} {date} {date:YYYY-MM-DD}, or any frontmatter key such as {company}. A note can override it with cv-filename.")
       .addText((t) =>
         t.setValue(settings.filenameTemplate).onChange(async (v) => {
           settings.filenameTemplate = v;

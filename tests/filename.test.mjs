@@ -26,6 +26,17 @@ test("date tokens", () => {
   assert.equal(formatDate(ctx.date, "DD/MM/YYYY"), "05/03/2026");
 });
 
+test("any frontmatter key works as a token", () => {
+  const t = "{name} - {headline} ({company})";
+  assert.equal(renderFilename(t, { ...ctx, fields: { company: "ScaleOps" } }), "Jane Doe - Technical Writer (ScaleOps)");
+  assert.equal(renderFilename(t, { ...ctx, fields: {} }), "Jane Doe - Technical Writer");
+  assert.equal(renderFilename(t, { ...ctx, fields: { company: "" } }), "Jane Doe - Technical Writer");
+  assert.equal(renderFilename("{name} {base-master}", { ...ctx, fields: { "base-master": "M" } }), "Jane Doe M");
+  assert.equal(renderFilename("{name} {company}", { ...ctx, fields: { company: "A/B: Co" } }), "Jane Doe AB Co");
+  assert.equal(renderFilename("{name} {title}", { ...ctx, fields: { title: "ignored" } }), "Jane Doe CV Jane");
+  assert.equal(renderFilename("{name} {constructor}", ctx), "Jane Doe");
+});
+
 test("title token and fallback", () => {
   assert.equal(renderFilename("{title}", ctx), "CV Jane");
   assert.equal(renderFilename("{variant}", ctx), "CV");

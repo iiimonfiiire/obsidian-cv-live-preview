@@ -1,0 +1,301 @@
+/* =====================================================================
+   CV stylesheet: A4, print-first, one or two pages.
+   Fonts come from FONTDIR/*.ttf, filled in by renderHtml.
+
+   html.preview (set by the plugin's live preview) drops the sheet
+   simulation so the iframe shows the page at its true width.
+   ===================================================================== */
+
+/* ---------- 1. Design tokens ---------------------------------------- */
+:root {
+  /* Colour */
+  --page-bg:      #f2f5f6;   /* set to #ffffff for a white print copy */
+  --ink:          #1c272d;
+  --muted:        #4f5f67;   /* 6.0:1 on the page background */
+  --accent:       #e5510d;
+  --accent-ink:   #c2410c;   /* darker accent for small text (labels) */
+  --rule:         #c9d3d7;   /* hairline colour */
+
+  /* Families */
+  --font-body:    "Figtree", system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Figtree", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale (pt) */
+  --fs-name:      32pt;
+  --fs-headline:  13.5pt;
+  --fs-h2:        13pt;
+  --fs-company:   11.5pt;
+  --fs-body:      10.5pt;
+  --fs-small:     9.5pt;     /* fluency, secondary text */
+  --fs-mono:      9pt;       /* dates, contact */
+  --fs-label:     9pt;       /* skill-group labels */
+  --lh-body:      1.38;
+  --lh-tight:     1.15;
+
+  /* Tracking */
+  --track-name:   0.06em;
+  --track-h2:     0.12em;
+  --track-label:  0.08em;
+
+  /* Spacing scale (pt) */
+  --s1: 2pt;
+  --s2: 4pt;
+  --s3: 6pt;
+  --s4: 9pt;
+  --s5: 13pt;
+  --s6: 18pt;
+
+  /* Page geometry */
+  --page-top:     35pt;      /* page 1 top */
+  --page-top-n:   32pt;      /* page 2+ top */
+  --page-side:    39.6pt;
+  --page-bottom:  34pt;
+
+  /* Columns */
+  --col-gap:      22pt;
+  --aside-w:      31%;
+  --rule-w:       2pt;       /* orange header rule */
+  --hair:         0.6pt;
+}
+
+/* ---------- 2. Fonts (local TTF only) ------------------------------- */
+@font-face { font-family: "Figtree"; font-weight: 400; src: url("FONTDIR/Figtree-400.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 500; src: url("FONTDIR/Figtree-500.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 600; src: url("FONTDIR/Figtree-600.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 700; src: url("FONTDIR/Figtree-700.ttf"); }
+@font-face { font-family: "Figtree"; font-weight: 800; src: url("FONTDIR/Figtree-800.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 500; src: url("FONTDIR/BarlowCondensed-500.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; src: url("FONTDIR/BarlowCondensed-600.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; src: url("FONTDIR/BarlowCondensed-700.ttf"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; src: url("FONTDIR/BarlowCondensed-800.ttf"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; src: url("FONTDIR/JetBrainsMono-400.ttf"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; src: url("FONTDIR/JetBrainsMono-500.ttf"); }
+
+/* ---------- 3. Page --------------------------------------------------- */
+@page {
+  size: A4;
+  margin: var(--page-top-n) var(--page-side) var(--page-bottom);
+  background: var(--page-bg);       /* paints the margins too */
+  /* Slim running footer on every page except the first */
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font: 500 8pt/1 "JetBrains Mono", monospace;
+    color: #4f5f67;
+    vertical-align: top;
+    padding-top: 10pt;
+  }
+}
+@page :first {
+  margin-top: var(--page-top);
+  @bottom-right { content: none; }
+}
+
+html {
+  background: var(--page-bg);      /* propagates to the whole sheet, margins included */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+body {
+  margin: 0;
+  font: 400 var(--fs-body)/var(--lh-body) var(--font-body);
+  color: var(--ink);
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  orphans: 2;
+  widows: 2;
+}
+
+/* Opened directly in a browser: show an A4 sheet at 100% zoom */
+@media screen {
+  html:not(.preview) { background: #d9dfe2; }
+  html:not(.preview) body {
+    width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+    margin: 24px auto;
+    padding: var(--page-top) var(--page-side) var(--page-bottom);
+    background: var(--page-bg);
+    box-shadow: 0 1px 4px rgb(0 0 0 / .15);
+  }
+  /* Plugin preview: the iframe is exactly one A4 sheet wide */
+  html.preview body {
+    width: 210mm;
+    box-sizing: border-box;
+    margin: 0;
+    padding: var(--page-top) var(--page-side) var(--page-bottom);
+  }
+}
+
+/* ---------- 4. Header ------------------------------------------------- */
+header { margin-bottom: var(--s5); }
+
+header > h1 {
+  margin: 0;
+  font: 700 var(--fs-name)/1 var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: var(--track-name);
+}
+.headline {
+  margin: var(--s2) 0 0;
+  font: 600 var(--fs-headline)/var(--lh-tight) var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  color: var(--accent);
+}
+
+/* Contact: full-width strip under the name, 3 + 2 grid */
+.contact {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  column-gap: var(--s6);
+  row-gap: var(--s2);
+  margin-top: var(--s4);
+}
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 14pt;                 /* about 5 mm tap height in a PDF viewer */
+  font: 500 var(--fs-mono)/var(--lh-tight) var(--font-mono);
+  white-space: nowrap;
+}
+.contact-row a { color: var(--ink); text-decoration: none; padding: var(--s1) 0; }
+
+.ic {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 10pt;
+  height: 10pt;
+  color: var(--accent);
+  user-select: none;                /* never part of copied text */
+}
+.ic svg { width: 100%; height: 100%; display: block; }
+
+.rule {
+  height: 0;
+  border: 0;
+  border-top: var(--rule-w) solid var(--accent);
+  margin: var(--s4) 0 0;
+}
+
+/* ---------- 5. Summary ----------------------------------------------- */
+.featured { margin-bottom: var(--s5); }
+.featured p { margin: 0; max-width: 92%; }
+
+/* ---------- 6. Columns ----------------------------------------------- */
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--aside-w);
+  column-gap: var(--col-gap);
+  align-items: start;
+}
+aside {
+  border-left: var(--hair) solid var(--rule);
+  padding-left: var(--col-gap);
+  margin-left: calc(var(--col-gap) * -0.5);
+}
+
+/* ---------- 7. Sections ---------------------------------------------- */
+section + section { margin-top: var(--s5); }
+
+section > h2 {
+  margin: 0 0 var(--s4);
+  padding-bottom: var(--s2);
+  border-bottom: var(--hair) solid var(--rule);
+  font: 700 var(--fs-h2)/1 var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: var(--track-h2);
+  break-after: avoid;               /* never stranded at a page foot */
+  page-break-after: avoid;
+}
+
+/* ---------- 8. Experience / project entries -------------------------- */
+article { break-inside: auto; }
+article + article { margin-top: var(--s5); }
+
+.item-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--s4);
+  align-items: baseline;
+  margin-bottom: var(--s2);
+  break-inside: avoid;              /* company, role and date never split */
+  break-after: avoid;               /* head stays with its first lines */
+  page-break-after: avoid;
+}
+.company  { grid-column: 1; font-weight: 700; font-size: var(--fs-company); line-height: var(--lh-tight); }
+.position { grid-column: 1; grid-row: 2; font-weight: 500; color: var(--muted); margin-top: var(--s1); }
+.item-head .date { grid-column: 2; grid-row: 1; }
+.item-head a { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 2pt; }
+
+.date {
+  font: 500 var(--fs-mono)/var(--lh-tight) var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+article p  { margin: 0 0 var(--s2); break-after: avoid; }
+article ul { margin: 0; padding-left: 12pt; }
+article li { margin: 0 0 var(--s2); padding-left: 1pt; break-inside: avoid; page-break-inside: avoid; }
+article li::marker { color: var(--accent); font-size: 0.9em; }
+article li:first-child { break-before: avoid; }
+article li:last-child  { break-before: avoid; }
+li p { margin: 0; }
+
+strong { font-weight: 700; color: var(--ink); }
+code   { font: 500 0.88em var(--font-mono); }
+a      { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 2pt; }
+.nb    { white-space: nowrap; }
+
+/* ---------- 9. Sidebar ----------------------------------------------- */
+.skill { break-inside: avoid; }
+.skill + .skill { margin-top: var(--s4); }
+.skill-name {
+  margin: 0 0 var(--s1);
+  font: 700 var(--fs-label)/var(--lh-tight) var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  color: var(--accent-ink);
+}
+.kw { margin: 0; }
+
+aside ul { margin: 0; padding-left: 12pt; }
+aside li { margin: 0 0 var(--s2); padding-left: 1pt; }
+aside li::marker { color: var(--accent); font-size: 0.9em; }
+aside section > p { margin: 0; }
+
+.edu, .lang { break-inside: avoid; }
+.edu + .edu { margin-top: var(--s4); }
+.edu .degree { display: block; font-weight: 700; line-height: var(--lh-tight); }
+.edu .date   { display: block; margin-top: var(--s1); }
+.edu p { margin: var(--s1) 0 0; }
+
+.lang { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); }
+.lang + .lang { margin-top: var(--s2); }
+.lang .fluency { font-size: var(--fs-small); color: var(--muted); }
+
+/* ---------- 10. Option B: single column ------------------------------- */
+/* The sidebar becomes a band after the main content. */
+.layout-single .cols { display: block; }
+.layout-single aside {
+  border-left: 0; padding-left: 0; margin: var(--s5) 0 0;
+  display: grid; grid-template-columns: 1.6fr 1fr; column-gap: var(--col-gap);
+  break-before: avoid;
+}
+.layout-single aside > section:first-child { grid-row: span 2; }
+.layout-single aside > section + section { margin-top: 0; }
+.layout-single aside > section:nth-child(3) { margin-top: var(--s5); }
+.layout-single .skill { display: grid; grid-template-columns: 30% 1fr; gap: var(--s3); }
+.layout-single .skill-name { margin: 1pt 0 0; }
+
+/* ---------- 11. Option C: wider sidebar ------------------------------- */
+.layout-wide { --aside-w: 37%; }
+
+/* ---------- 12. Black-and-white safety -------------------------------- */
+/* Nothing relies on orange alone: headings are bold caps, dates are mono,
+   links stay underlined in entry headings and readable as plain text. */
+@media print {
+  .contact-row a { text-decoration: none; }
+}

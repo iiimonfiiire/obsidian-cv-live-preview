@@ -161,7 +161,7 @@ test("Markdown links in item headings render as links", () => {
 
 test("heading links are underlined in the stylesheet", async () => {
   const { readFile } = await import("node:fs/promises");
-  const css = await readFile(new URL("../src/carcharias.css", import.meta.url), "utf8");
+  const css = await readFile(new URL("../src/themes/modern.css", import.meta.url), "utf8");
   assert.match(css, /\.item-head a\s*\{[^}]*text-decoration:\s*underline/);
 });
 

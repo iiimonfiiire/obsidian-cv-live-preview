@@ -8,14 +8,17 @@ import { renderHtml } from "../src/render-core.mjs";
 import { findChrome } from "../src/chrome.mjs";
 import { readOverrides } from "../src/overrides.mjs";
 import { applyMetadata, buildMetadata } from "../src/pdf-meta.mjs";
+import { THEME_IDS, getTheme, isThemeId } from "../src/themes.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-async function build(mdPath, pdfPath, { htmlOnly, metadata }) {
+async function build(mdPath, pdfPath, { htmlOnly, metadata, themeId }) {
   const src = readFileSync(mdPath, "utf8");
-  const css = readFileSync(join(here, "../src/carcharias.css"), "utf8");
+  const theme = getTheme(themeId ?? readOverrides(src).theme);
+  const css = readFileSync(join(here, "../src/themes", theme.cssFile), "utf8");
   const html = renderHtml(src, {
     css,
+    theme,
     fontUrl: (f) => `file://${join(here, "../fonts", f)}`,
   });
   const htmlPath = resolve(pdfPath.replace(/\.pdf$/, ".html"));
@@ -43,10 +46,16 @@ async function build(mdPath, pdfPath, { htmlOnly, metadata }) {
 
 const [, , mdPath, pdfPath, ...flags] = process.argv;
 if (!mdPath || !pdfPath) {
-  console.error("usage: render.mjs <cv.md> <out.pdf> [--html-only] [--watch] [--no-metadata]");
+  console.error("usage: render.mjs <cv.md> <out.pdf> [--theme classic|a|b|c] [--html-only] [--watch] [--no-metadata]");
   process.exit(1);
 }
-const options = { htmlOnly: flags.includes("--html-only"), metadata: !flags.includes("--no-metadata") };
+const at = flags.indexOf("--theme");
+const themeId = at >= 0 ? flags[at + 1] : undefined;
+if (at >= 0 && !isThemeId(themeId)) {
+  console.error(`unknown theme "${themeId}"; use one of: ${THEME_IDS.join(", ")}`);
+  process.exit(1);
+}
+const options = { htmlOnly: flags.includes("--html-only"), metadata: !flags.includes("--no-metadata"), themeId };
 
 const run = async () => {
   try {

@@ -1,8 +1,8 @@
 # CV Live Preview
 
 An Obsidian plugin for writing a CV in Markdown. It renders the note live in a
-side pane with a Carcharias-style layout, checks that the CV fits one page, and
-exports a PDF through headless Chrome. Desktop only.
+side pane, checks the page fit, and exports a PDF through headless Chrome. It
+ships four themes (see "Themes"). Desktop only.
 
 ## Install
 
@@ -20,7 +20,8 @@ Then enable "CV Live Preview" under Settings > Community plugins.
 1. Open a CV note (frontmatter with `name` and `headline`).
 2. Run "Open CV preview" from the command palette or the ribbon icon.
 3. The pane re-renders as you type. The banner shows the page fit, and the
-   dashed lines mark the minimum bottom margin and the page end.
+   dashed lines mark the minimum bottom margin and where each page ends.
+   Pick a theme for this note from the dropdown in the bar.
 4. Run "Export CV as PDF". Where the file goes is set under Settings > Export.
 
 ### Preview panels
@@ -38,6 +39,7 @@ Then enable "CV Live Preview" under Settings > Community plugins.
   dialog), export folder (absolute or vault-relative; created if missing),
   filename template, collision handling (`overwrite` or `counter`), action after
   export (`none`, `reveal`, `open`), PDF metadata on or off.
+- Theme: default theme for notes without a `cv-theme` line.
 - Preview: minimum bottom margin (pt).
 - Chrome: binary path and a Test button. If the path does not exist, Chrome,
   Chromium, Edge, and Brave are looked up in well-known locations (and
@@ -55,12 +57,29 @@ name), `{variant}` (frontmatter `variant`), `{date}` and `{date:FORMAT}` with
 separators left dangling by empty tokens are trimmed. An empty result becomes
 `CV`.
 
+### Themes
+
+| Id | Design | Pages |
+|---|---|---|
+| `classic` | The original compact layout, 8.75 pt text | 1 |
+| `a` | Two columns with a sidebar, 10.5 pt text (default) | up to 2 |
+| `b` | Single column; skills, education, and languages follow the experience | up to 2 |
+| `c` | Like `a` with a wider sidebar | up to 2 |
+
+The dropdown in the preview bar writes `cv-theme: <id>` into the note's
+frontmatter. It changes only that line and leaves the rest of the note as is.
+"Default theme" clears the line, so the note follows the default in settings.
+Themes `a`, `b`, and `c` share one stylesheet (`src/themes/modern.css`) and run
+page numbers ("Page 2 of 2") from page 2. The preview estimates the page count;
+the export notice reports the exact count of the PDF.
+
 ### Per-note overrides
 
 Frontmatter keys override the settings for one note:
 
 | Key | Effect |
 |---|---|
+| `cv-theme` | Theme for this note: `classic`, `a`, `b`, or `c` |
 | `cv-export-folder` | Export to this folder (implies folder mode) |
 | `cv-filename` | Filename template |
 | `cv-pdf-title`, `cv-pdf-author`, `cv-pdf-subject` | PDF metadata |
@@ -75,8 +94,10 @@ text with font objects; the export warns if no font objects are found.
 
 ## Markdown format
 
-- Frontmatter: `name`, `headline`, `email`, `phone`, `location`, `website: <url> | <label>`.
-  Optional: `variant`, `keywords`, and the `cv-*` overrides above.
+- Frontmatter: `name`, `headline`, `email`, `phone`, `website: <url> | <label>`.
+  Optional: `linkedin` and `github` (a URL, or `<url> | <label>`), shown in the
+  header with icons; `location`, shown by the `classic` theme only; `variant`,
+  `keywords`, and the `cv-*` overrides above.
 - Text before the first `##` is the summary.
 - `## Experience` and `## Projects`: `### Company · Position · period`, then bullets.
 - `## Skills`: `### Group`, then a comma-separated keyword line.
@@ -86,7 +107,7 @@ text with font objects; the export warns if no font objects are found.
 ## Command line
 
 ```
-npm run render -- cv.md out/cv.pdf [--watch] [--html-only] [--no-metadata]
+npm run render -- cv.md out/cv.pdf [--theme classic|a|b|c] [--watch] [--html-only] [--no-metadata]
 node scripts/json-to-md.mjs <resume.json> cv.md   # one-off conversion
 ```
 
@@ -99,8 +120,8 @@ metadata is applied unless `--no-metadata` is passed.
   filename template and per-note overrides.
 - **Auto-export on save:** opt-in, debounced, so the PDF in the export folder
   stays current.
-- **Themes and layout options:** font size, margins, accent color, and section
-  order as settings or frontmatter, with the current layout as the default.
+- **Theme options:** font size, margins, accent color, and section order as
+  settings or frontmatter.
 - **Page-fit help:** show which lines overflow the page and suggest a trim or a
   spacing adjustment.
 

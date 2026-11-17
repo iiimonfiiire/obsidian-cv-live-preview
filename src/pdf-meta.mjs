@@ -53,6 +53,14 @@ export async function applyMetadata(bytes, md) {
 }
 
 // Chrome prints real text with font objects. An image-only PDF has none.
+export async function countPages(bytes) {
+  try {
+    return (await PDFDocument.load(bytes, { updateMetadata: false })).getPageCount();
+  } catch {
+    return 0;
+  }
+}
+
 export function hasTextLayer(bytes) {
   return /\/Type\s*\/Font\b/.test(new TextDecoder("latin1").decode(bytes));
 }

@@ -12,6 +12,7 @@ import { THEMES, getTheme } from "./themes.mjs";
 import { findChrome } from "./chrome.mjs";
 import { applyMetadata, buildMetadata, countPages, hasTextLayer } from "./pdf-meta.mjs";
 import { countLevels, lintCv } from "./lint.mjs";
+import { createExportTracker } from "./export-progress.mjs";
 import { fitPages } from "./pagination.mjs";
 import { coverage, formatCoverageReport } from "./keywords.mjs";
 import classicCss from "./themes/classic.css";
@@ -106,8 +107,9 @@ class CvView extends ItemView {
     this.themeSelect.createEl("option", { value: "", text: "Default theme" });
     for (const t of THEMES) this.themeSelect.createEl("option", { value: t.id, text: t.label });
     this.themeSelect.addEventListener("change", () => this.plugin.setNoteTheme(this.themeSelect.value));
-    const btn = bar.createEl("button", { text: "Export PDF" });
-    btn.addEventListener("click", () => this.plugin.exportActive());
+    const btn = bar.createEl("button", { cls: "cv-export", text: "Export PDF" });
+    btn.addEventListener("click", () => this.plugin.exportActive({ fromButton: true }));
+    this.unsubscribeExport = this.plugin.exportTracker.subscribe((e) => this.showExport(btn, e));
     const gear = bar.createEl("button", { cls: "cv-gear clickable-icon", attr: { "aria-label": "CV Live Preview settings" } });
     setIcon(gear, "settings");
     gear.addEventListener("click", () => this.plugin.openSettings());
@@ -132,6 +134,23 @@ class CvView extends ItemView {
 
   async onClose() {
     this.observer?.disconnect();
+    this.unsubscribeExport?.();
+    clearTimeout(this.exportResetTimer);
+  }
+
+  showExport(btn, e) {
+    clearTimeout(this.exportResetTimer);
+    if (e.type === "end") {
+      btn.disabled = false;
+      btn.removeClass("cv-busy");
+      if (e.outcome !== "done") return btn.setText("Export PDF");
+      btn.setText("Done ✓");
+      this.exportResetTimer = setTimeout(() => btn.setText("Export PDF"), 2000);
+      return;
+    }
+    btn.disabled = true;
+    btn.addClass("cv-busy");
+    btn.setText(e.type === "stage" ? e.label : "Starting…");
   }
 
   buildPanels(root) {
@@ -273,6 +292,7 @@ export default class CvLivePreviewPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULTS, await this.loadData());
     this.currentFile = null;
     this.timer = null;
+    this.exportTracker = createExportTracker();
 
     this.registerView(VIEW_TYPE, (leaf) => new CvView(leaf, this));
     this.addRibbonIcon("file-text", "Open CV preview", () => this.activateView());
@@ -427,17 +447,30 @@ export default class CvLivePreviewPlugin extends Plugin {
   }
 
 
-  async exportActive() {
+  async exportActive({ fromButton = false } = {}) {
     const file = this.app.workspace.getActiveFile() ?? this.currentFile;
     if (!file || file.extension !== "md") return new Notice("Open a CV note first.");
+    if (!this.exportTracker.start()) return new Notice("An export is already running.", 2500);
+    // Without the preview button, show the stages in one persistent notice.
+    const progress = fromButton ? null : new Notice("Exporting CV…", 0);
+    const off = progress ? this.exportTracker.subscribe((e) => e.type === "stage" && progress.setMessage(`Exporting CV: ${e.label}`)) : null;
+    let outcome = "failed";
     try {
       const text = await this.readText(file);
       if (!looksLikeCv(text)) return new Notice("This note has no CV frontmatter (name and headline).");
       const result = await this.exportPdf(file, text);
-      if (!result) return new Notice("Export cancelled.");
+      if (!result) {
+        outcome = "cancelled";
+        return new Notice("Export cancelled.");
+      }
+      outcome = "done";
       this.announceExport(result);
     } catch (e) {
       new Notice(`PDF export failed: ${e.message}`, 8000);
+    } finally {
+      off?.();
+      progress?.hide();
+      this.exportTracker.finish(outcome);
     }
   }
 
@@ -484,6 +517,8 @@ export default class CvLivePreviewPlugin extends Plugin {
     const outPath = await this.chooseOutPath(target);
     if (!outPath) return null;
 
+    const stage = (name) => this.exportTracker.stage(name);
+    stage("render");
     const chrome = findChrome({ configured: this.settings.chromePath, platform: process.platform, env: process.env, exists: existsSync });
     if (!chrome) throw new Error("No Chrome, Chromium, Edge, or Brave found. Set the Chrome path in settings.");
 
@@ -495,6 +530,7 @@ export default class CvLivePreviewPlugin extends Plugin {
       const htmlPath = join(tmp, "cv.html");
       const rawPdf = join(tmp, "cv.pdf");
       await writeFile(htmlPath, html);
+      stage("chrome");
       await new Promise((resolve, reject) => {
         execFile(
           chrome.path,
@@ -513,7 +549,11 @@ export default class CvLivePreviewPlugin extends Plugin {
       });
       let bytes = await readFile(rawPdf);
       if (!hasTextLayer(bytes)) new Notice("Warning: the PDF has no font objects, so text may not be selectable.", 6000);
-      if (this.settings.embedMetadata) bytes = await applyMetadata(bytes, buildMetadata(text, overrides));
+      if (this.settings.embedMetadata) {
+        stage("metadata");
+        bytes = await applyMetadata(bytes, buildMetadata(text, overrides));
+      }
+      stage("save");
       await mkdir(dirname(outPath), { recursive: true });
       await writeFile(outPath, bytes);
       pages = await countPages(bytes);

@@ -1,6 +1,5 @@
 node_modules/
 dist/
-fonts/
 out/
 .env
 data.json

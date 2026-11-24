@@ -2,13 +2,25 @@ name: test
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: npm
-      - run: npm ci && npm test
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Check build output
+        run: |
+          for f in dist/main.js dist/manifest.json dist/styles.css; do
+            test -s "$f" || { echo "missing $f"; exit 1; }
+          done

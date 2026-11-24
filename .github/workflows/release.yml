@@ -1,0 +1,36 @@
+name: release
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+permissions: {}
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check tag against manifest.json and versions.json
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(node -p "require('./manifest.json').version")
+          [ "$TAG" = "$version" ] || { echo "tag $TAG does not match manifest.json version $version"; exit 1; }
+          node -e "const v=require('./versions.json'); if(!v[process.argv[1]]){console.error('versions.json has no entry for '+process.argv[1]);process.exit(1)}" "$TAG"
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/main.js dist/manifest.json dist/styles.css --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes "Release $TAG"

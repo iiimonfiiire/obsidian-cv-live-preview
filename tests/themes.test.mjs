@@ -33,7 +33,7 @@ Summary.
 
 const render = (id, src = CV) => {
   const theme = getTheme(id);
-  return renderHtml(src, { css: "", fontUrl: (f) => f, theme });
+  return renderHtml(src, { css: "", theme });
 };
 
 test("registry has three themes and a valid default", () => {

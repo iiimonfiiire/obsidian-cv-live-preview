@@ -58,8 +58,7 @@ I build guitar pedals.
 `;
 
 const css = "body { color: #000; }";
-const fontUrl = (f) => `font://${f}`;
-const html = (src) => renderHtml(src, { css, fontUrl });
+const html = (src) => renderHtml(src, { css });
 const between = (s, open, close) => s.slice(s.indexOf(open), s.indexOf(close));
 
 test("parseCv reads frontmatter, summary, and every ## section", () => {
@@ -137,10 +136,9 @@ test("renderHtml renders Markdown inside the free-text sections", () => {
   assert.match(out, /<p>I build guitar pedals\.<\/p>/);
 });
 
-test("renderHtml rewrites font placeholders through fontUrl", () => {
-  const out = renderHtml(FULL, { css: "src: url(FONTDIR/Figtree-400.ttf);", fontUrl });
-  assert.match(out, /font:\/\/Figtree-400\.ttf/);
-  assert.doesNotMatch(out, /FONTDIR/);
+test("renderHtml puts the font faces ahead of the stylesheet", () => {
+  const out = renderHtml(FULL, { css: "body { margin: 0 }", fonts: "@font-face { font-family: X; }" });
+  assert.match(out, /<style>@font-face \{ font-family: X; \}\nbody \{ margin: 0 \}<\/style>/);
 });
 
 test("skill keywords are separated by plain commas", () => {
@@ -173,4 +171,10 @@ test("long position titles span the full width so they do not wrap under the dat
 
 test("hyphenated words are kept unbroken", () => {
   assert.match(html(FULL), /<span class="nb">docs-as-code<\/span>/);
+});
+
+test("parseCv accepts Windows line endings", () => {
+  const { meta, sections } = parseCv(FULL.replace(/\n/g, "\r\n"));
+  assert.equal(meta.name, "Test Person");
+  assert.ok(sections.Experience);
 });

@@ -1,4 +1,4 @@
-import { FileSystemAdapter, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, setIcon } from "obsidian";
+import { FileSystemAdapter, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, normalizePath, setIcon } from "obsidian";
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -6,6 +6,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { parseCv, renderHtml } from "./render-core.mjs";
 import { fontFaceCss } from "./fonts.mjs";
+import { detectCv, exportBlocker, looksLikeCv, setupMessage } from "./cv-detect.mjs";
+import { SAMPLE_CV, sampleCvPath } from "./sample-cv.mjs";
 import { renderFilename } from "./filename.mjs";
 import { resolveCollision, resolveTarget } from "./export-path.mjs";
 import { applyOverrides, readFrontmatter, readOverrides, setFrontmatterKey } from "./overrides.mjs";
@@ -75,11 +77,6 @@ function splitPins(s) {
     .filter(Boolean);
 }
 
-function looksLikeCv(text) {
-  const fm = text.match(/^---\n([\s\S]*?)\n---/);
-  return !!fm && /^name:/m.test(fm[1]) && /^headline:/m.test(fm[1]);
-}
-
 class CvView extends ItemView {
   constructor(leaf, plugin) {
     super(leaf);
@@ -116,6 +113,10 @@ class CvView extends ItemView {
     gear.addEventListener("click", () => this.plugin.openSettings());
     this.buildPanels(root);
     this.scroller = root.createDiv({ cls: "cv-scroller" });
+    this.setupEl = this.scroller.createDiv({ cls: "cv-setup" });
+    this.setupText = this.setupEl.createEl("p");
+    this.setupEl.createEl("button", { cls: "mod-cta", text: "Create sample CV" }).addEventListener("click", () => this.plugin.createSampleCv());
+    this.setupEl.hide();
     this.sizer = this.scroller.createDiv({ cls: "cv-sizer" });
     this.stage = this.sizer.createDiv({ cls: "cv-stage" });
     this.frame = this.stage.createEl("iframe");
@@ -155,7 +156,7 @@ class CvView extends ItemView {
   }
 
   buildPanels(root) {
-    const panels = root.createDiv({ cls: "cv-panels" });
+    const panels = (this.panelsEl = root.createDiv({ cls: "cv-panels" }));
     this.lintPanel = panels.createEl("details", { cls: "cv-panel" });
     this.lintSummary = this.lintPanel.createEl("summary", { text: "Format check" });
     this.lintList = this.lintPanel.createDiv({ cls: "cv-issues" });
@@ -248,8 +249,28 @@ class CvView extends ItemView {
     this.themeSelect.value = id;
   }
 
+  // The note is not a CV yet: say what is missing instead of rendering.
+  showSetup(message) {
+    this.token = (this.token || 0) + 1;
+    this.setStatus("No CV to preview.");
+    this.setupText.textContent = message;
+    this.setupEl.show();
+    this.sizer.hide();
+    this.panelsEl.hide();
+    this.lintCountEl.empty();
+  }
+
+  clearSetup() {
+    if (!this.setupEl.isShown()) return;
+    this.setupEl.hide();
+    this.sizer.show();
+    this.panelsEl.show();
+  }
+
   async show(html, theme) {
-    const token = (this.token = (this.token || 0) + 1);
+    this.clearSetup();
+    const token = (this.token || 0) + 1;
+    this.token = token;
     await new Promise((resolve) => {
       this.frame.onload = resolve;
       this.frame.srcdoc = html;
@@ -299,14 +320,17 @@ export default class CvLivePreviewPlugin extends Plugin {
     this.addRibbonIcon("file-text", "Open CV preview", () => this.activateView());
     this.addCommand({ id: "open-preview", name: "Open CV preview", callback: () => this.activateView() });
     this.addCommand({ id: "export-pdf", name: "Export CV as PDF", callback: () => this.exportActive() });
+    this.addCommand({ id: "create-sample-cv", name: "Create sample CV", callback: () => this.createSampleCv() });
     this.addSettingTab(new CvSettingTab(this.app, this));
 
     this.registerEvent(
       this.app.workspace.on("editor-change", (editor, info) => {
-        if (info?.file && looksLikeCv(editor.getValue())) {
+        if (!info?.file) return;
+        const text = editor.getValue();
+        if (looksLikeCv(text)) {
           this.currentFile = info.file;
-          this.queueRender(editor.getValue());
-        }
+          this.queueRender(text);
+        } else if (info.file.path === this.app.workspace.getActiveFile()?.path) this.showSetup(text);
       }),
     );
     this.registerEvent(
@@ -349,9 +373,22 @@ export default class CvLivePreviewPlugin extends Plugin {
   async follow(file) {
     if (file.extension !== "md") return;
     const text = await this.readText(file);
-    if (!looksLikeCv(text)) return;
+    if (!looksLikeCv(text)) return this.showSetup(text);
     this.currentFile = file;
     this.queueRender(text);
+  }
+
+  showSetup(text) {
+    clearTimeout(this.timer);
+    this.getView()?.showSetup(setupMessage(detectCv(text)));
+  }
+
+  async createSampleCv() {
+    const parent = this.app.fileManager.getNewFileParent(this.app.workspace.getActiveFile()?.path ?? "");
+    const path = normalizePath(sampleCvPath(parent.path, (p) => this.app.vault.getAbstractFileByPath(p) !== null));
+    const file = await this.app.vault.create(path, SAMPLE_CV);
+    await this.app.workspace.getLeaf(false).openFile(file);
+    await this.activateView();
   }
 
   // The open editor holds the newest text. Disk reads can lag behind it
@@ -416,6 +453,7 @@ export default class CvLivePreviewPlugin extends Plugin {
     const choice = readOverrides(text).theme ?? "";
     const theme = this.resolveTheme(text);
     view.setThemeChoice(THEMES.some((t) => t.id === choice.toLowerCase()) ? choice.toLowerCase() : "");
+    view.clearSetup();
     try {
       const html = renderHtml(text, { css: themeCss(theme), fonts: fontFaceCss(), preview: true, theme });
       view.show(html, theme);
@@ -454,7 +492,8 @@ export default class CvLivePreviewPlugin extends Plugin {
     let outcome = "failed";
     try {
       const text = await this.readText(file);
-      if (!looksLikeCv(text)) return new Notice("This note has no CV frontmatter (name and headline).");
+      const blocker = exportBlocker(detectCv(text));
+      if (blocker) return new Notice(blocker, 6000);
       const result = await this.exportPdf(file, text);
       if (!result) {
         outcome = "cancelled";

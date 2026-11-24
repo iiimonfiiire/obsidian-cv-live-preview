@@ -4,6 +4,7 @@ import { marked } from "marked";
 import { getTheme } from "./themes.mjs";
 
 export function parseCv(src) {
+  src = src.replace(/\r\n?/g, "\n");
   const m = src.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!m) throw new Error("missing frontmatter");
   const meta = {};

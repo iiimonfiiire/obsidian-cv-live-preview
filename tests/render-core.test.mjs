@@ -172,3 +172,9 @@ test("long position titles span the full width so they do not wrap under the dat
 test("hyphenated words are kept unbroken", () => {
   assert.match(html(FULL), /<span class="nb">docs-as-code<\/span>/);
 });
+
+test("parseCv accepts Windows line endings", () => {
+  const { meta, sections } = parseCv(FULL.replace(/\n/g, "\r\n"));
+  assert.equal(meta.name, "Test Person");
+  assert.ok(sections.Experience);
+});

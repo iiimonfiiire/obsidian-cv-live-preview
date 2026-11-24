@@ -2,7 +2,7 @@
   "id": "cv-live-preview",
   "name": "CV Live Preview",
   "version": "0.2.0",
-  "minAppVersion": "1.5.0",
+  "minAppVersion": "1.7.2",
   "description": "Write a CV in Markdown and see it rendered live beside the note, with a page-fit check and PDF export.",
   "author": "iiimonfiiire",
   "isDesktopOnly": true

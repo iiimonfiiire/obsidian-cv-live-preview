@@ -137,17 +137,17 @@ class CvView extends ItemView {
   async onClose() {
     this.observer?.disconnect();
     this.unsubscribeExport?.();
-    clearTimeout(this.exportResetTimer);
+    window.clearTimeout(this.exportResetTimer);
   }
 
   showExport(btn, e) {
-    clearTimeout(this.exportResetTimer);
+    window.clearTimeout(this.exportResetTimer);
     if (e.type === "end") {
       btn.disabled = false;
       btn.removeClass("cv-busy");
       if (e.outcome !== "done") return btn.setText("Export PDF");
       btn.setText("Done ✓");
-      this.exportResetTimer = setTimeout(() => btn.setText("Export PDF"), 2000);
+      this.exportResetTimer = window.setTimeout(() => btn.setText("Export PDF"), 2000);
       return;
     }
     btn.disabled = true;
@@ -345,10 +345,6 @@ export default class CvLivePreviewPlugin extends Plugin {
     );
   }
 
-  onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE);
-  }
-
   getView() {
     const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE)[0];
     return leaf?.view instanceof CvView ? leaf.view : null;
@@ -379,7 +375,7 @@ export default class CvLivePreviewPlugin extends Plugin {
   }
 
   showSetup(text) {
-    clearTimeout(this.timer);
+    window.clearTimeout(this.timer);
     this.getView()?.showSetup(setupMessage(detectCv(text)));
   }
 
@@ -402,8 +398,8 @@ export default class CvLivePreviewPlugin extends Plugin {
   }
 
   queueRender(text) {
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.renderPreview(text), 250);
+    window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => this.renderPreview(text), 250);
   }
 
   getPosting(path) {
@@ -414,8 +410,8 @@ export default class CvLivePreviewPlugin extends Plugin {
   onPostingEdited(path, text, pins) {
     if (!path) return;
     this.settings.postings = { ...this.settings.postings, [path]: { text, pins } };
-    clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => this.saveSettings(), 500);
+    window.clearTimeout(this.saveTimer);
+    this.saveTimer = window.setTimeout(() => this.saveSettings(), 500);
     this.getView()?.setKeywords(path, this.getPosting(path), this.lastText ?? "");
   }
 

@@ -6,18 +6,38 @@ ships three themes (see "Themes"). Desktop only.
 
 ## Install
 
+From Community plugins (once listed): open Settings > Community plugins >
+Browse, search "CV Live Preview", install, and enable.
+
+Manual install from a release:
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release.
+2. Put them in `<vault>/.obsidian/plugins/cv-live-preview/`.
+3. Enable "CV Live Preview" under Settings > Community plugins.
+
+Build from source:
+
 ```
-npm install
-npm run fonts -- <path to webfontlist.json>   # once; fonts are gitignored
+npm ci
 npm run build
 npm run install-plugin -- <path to vault>
 ```
 
-Then enable "CV Live Preview" under Settings > Community plugins.
+The build writes `main.js`, `manifest.json`, and `styles.css` to `dist/`; the
+fonts are inside `main.js`. Then enable the plugin as above.
+
+## Getting started
+
+1. Run "Create sample CV" from the command palette. It adds `Sample CV.md` to
+   your vault (numbered if the name is taken) and opens the preview.
+2. Edit the note: replace the placeholder name, contact details, and jobs with
+   your own.
+3. Run "Export CV as PDF", or press Export PDF in the preview bar.
 
 ## Use
 
-1. Open a CV note (frontmatter with `name` and `headline`).
+1. Open a CV note (frontmatter with `name` and `headline`). On a note without
+   them, the preview names the missing fields and offers "Create sample CV".
 2. Run "Open CV preview" from the command palette or the ribbon icon.
 3. The pane re-renders as you type. The banner shows the page fit, and the
    dashed lines mark the minimum bottom margin and where each page ends.
@@ -139,6 +159,16 @@ node scripts/json-to-md.mjs <resume.json> cv.md   # one-off conversion
 Chrome is auto-detected; set `CHROME_BIN` to use a specific binary. PDF
 metadata is applied unless `--no-metadata` is passed.
 
+## Disclosures
+
+- Export launches a locally installed Chrome, Chromium, Edge, or Brave through
+  `child_process` to print the PDF.
+- The folder picker and save dialog use Electron dialogs.
+- The PDF is written to the folder you choose, which can be outside the vault.
+- The plugin makes no network requests and sends no telemetry.
+- Fonts (Figtree, Barlow Condensed, JetBrains Mono) are bundled in `main.js`
+  under the SIL Open Font License; the license texts are in `assets/fonts/`.
+
 ## Roadmap (v0.3 candidates)
 
 - **Batch export:** export every note with CV frontmatter in a folder, using the
@@ -152,8 +182,8 @@ metadata is applied unless `--no-metadata` is passed.
 
 ## Known gaps
 
-- Line breaks differ from the react-pdf renderer on a few lines, so rely on
-  the bottom-margin check, not only the page count.
+- Line breaks can differ between the preview and the PDF on a few lines, so
+  rely on the bottom-margin check, not only the page count.
 - Tests (`npm test`) cover rendering, filenames, export paths, the linter,
   keyword coverage, PDF metadata, and Chrome detection. The plugin UI, Electron
   dialogs, and the Chrome print step are not covered by automated tests.

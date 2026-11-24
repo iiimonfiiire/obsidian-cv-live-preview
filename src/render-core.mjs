@@ -198,10 +198,11 @@ function keepHyphenated(html) {
 
 // preview: true marks <html class="preview"> so the stylesheet skips the browser sheet simulation.
 // theme: an entry of THEMES (themes.mjs); css must be that theme's stylesheet.
-export function renderHtml(src, { css, fontUrl, preview = false, theme = getTheme() }) {
+// fonts: @font-face rules (fonts.mjs), prepended to the stylesheet.
+export function renderHtml(src, { css, fonts = "", preview = false, theme = getTheme() }) {
   const { meta, summary, sections } = parseCv(src);
   const classic = theme.markup === "classic";
-  const styles = css.replace(/FONTDIR\/([\w-]+\.ttf)/g, (_, f) => fontUrl(f));
+  const styles = `${fonts}\n${css}`;
   const main = [
     sections.Experience && section("Experience", experience(sections.Experience, classic)),
     sections.Projects && section("Projects", projects(sections.Projects, classic)),

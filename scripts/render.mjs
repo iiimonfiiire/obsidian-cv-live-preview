@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, existsSync, watch } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { fontFaceCss } from "../src/fonts.mjs";
 import { renderHtml } from "../src/render-core.mjs";
 import { findChrome } from "../src/chrome.mjs";
 import { readOverrides } from "../src/overrides.mjs";
@@ -19,7 +20,7 @@ async function build(mdPath, pdfPath, { htmlOnly, metadata, themeId }) {
   const html = renderHtml(src, {
     css,
     theme,
-    fontUrl: (f) => `file://${join(here, "../fonts", f)}`,
+    fonts: fontFaceCss(),
   });
   const htmlPath = resolve(pdfPath.replace(/\.pdf$/, ".html"));
   writeFileSync(htmlPath, html);
@@ -32,7 +33,6 @@ async function build(mdPath, pdfPath, { htmlOnly, metadata, themeId }) {
       "--headless=new",
       "--disable-gpu",
       "--no-pdf-header-footer",
-      "--allow-file-access-from-files",
       `--print-to-pdf=${resolve(pdfPath)}`,
       `file://${htmlPath}`,
     ],

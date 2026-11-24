@@ -1,6 +1,6 @@
 /* =====================================================================
    CV stylesheet: A4, print-first, one or two pages.
-   Fonts come from FONTDIR/*.ttf, filled in by renderHtml.
+   Font faces are prepended by renderHtml (see fonts.mjs).
 
    html.preview (set by the plugin's live preview) drops the sheet
    simulation so the iframe shows the page at its true width.
@@ -60,17 +60,6 @@
 }
 
 /* ---------- 2. Fonts (local TTF only) ------------------------------- */
-@font-face { font-family: "Figtree"; font-weight: 400; src: url("FONTDIR/Figtree-400.ttf"); }
-@font-face { font-family: "Figtree"; font-weight: 500; src: url("FONTDIR/Figtree-500.ttf"); }
-@font-face { font-family: "Figtree"; font-weight: 600; src: url("FONTDIR/Figtree-600.ttf"); }
-@font-face { font-family: "Figtree"; font-weight: 700; src: url("FONTDIR/Figtree-700.ttf"); }
-@font-face { font-family: "Figtree"; font-weight: 800; src: url("FONTDIR/Figtree-800.ttf"); }
-@font-face { font-family: "Barlow Condensed"; font-weight: 500; src: url("FONTDIR/BarlowCondensed-500.ttf"); }
-@font-face { font-family: "Barlow Condensed"; font-weight: 600; src: url("FONTDIR/BarlowCondensed-600.ttf"); }
-@font-face { font-family: "Barlow Condensed"; font-weight: 700; src: url("FONTDIR/BarlowCondensed-700.ttf"); }
-@font-face { font-family: "Barlow Condensed"; font-weight: 800; src: url("FONTDIR/BarlowCondensed-800.ttf"); }
-@font-face { font-family: "JetBrains Mono"; font-weight: 400; src: url("FONTDIR/JetBrainsMono-400.ttf"); }
-@font-face { font-family: "JetBrains Mono"; font-weight: 500; src: url("FONTDIR/JetBrainsMono-500.ttf"); }
 
 /* ---------- 3. Page --------------------------------------------------- */
 @page {

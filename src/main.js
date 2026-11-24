@@ -1,10 +1,11 @@
-import { FileSystemAdapter, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, normalizePath, setIcon } from "obsidian";
+import { FileSystemAdapter, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, setIcon } from "obsidian";
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { parseCv, renderHtml } from "./render-core.mjs";
+import { fontFaceCss } from "./fonts.mjs";
 import { renderFilename } from "./filename.mjs";
 import { resolveCollision, resolveTarget } from "./export-path.mjs";
 import { applyOverrides, readFrontmatter, readOverrides, setFrontmatterKey } from "./overrides.mjs";
@@ -416,7 +417,7 @@ export default class CvLivePreviewPlugin extends Plugin {
     const theme = this.resolveTheme(text);
     view.setThemeChoice(THEMES.some((t) => t.id === choice.toLowerCase()) ? choice.toLowerCase() : "");
     try {
-      const html = renderHtml(text, { css: themeCss(theme), fontUrl: (f) => this.fontResourceUrl(f), preview: true, theme });
+      const html = renderHtml(text, { css: themeCss(theme), fonts: fontFaceCss(), preview: true, theme });
       view.show(html, theme);
     } catch (e) {
       view.showMessage(`Cannot render: ${e.message}`);
@@ -434,10 +435,6 @@ export default class CvLivePreviewPlugin extends Plugin {
     if (!file) return;
     await this.app.vault.process(file, (data) => setFrontmatterKey(data, "cv-theme", id));
     this.follow(file);
-  }
-
-  fontResourceUrl(file) {
-    return this.app.vault.adapter.getResourcePath(normalizePath(`${this.manifest.dir}/fonts/${file}`));
   }
 
   basePath() {
@@ -500,7 +497,6 @@ export default class CvLivePreviewPlugin extends Plugin {
 
   async exportPdf(file, text) {
     const base = this.basePath();
-    const pluginDir = join(base, this.manifest.dir);
     const overrides = readOverrides(text);
     const s = applyOverrides(this.settings, overrides);
     const { meta } = parseCv(text);
@@ -523,7 +519,7 @@ export default class CvLivePreviewPlugin extends Plugin {
     if (!chrome) throw new Error("No Chrome, Chromium, Edge, or Brave found. Set the Chrome path in settings.");
 
     const theme = this.resolveTheme(text);
-    const html = renderHtml(text, { css: themeCss(theme), fontUrl: (f) => `file://${join(pluginDir, "fonts", f)}`, theme });
+    const html = renderHtml(text, { css: themeCss(theme), fonts: fontFaceCss(), theme });
     const tmp = await mkdtemp(join(tmpdir(), "cv-live-preview-"));
     let pages = 0;
     try {
@@ -538,7 +534,6 @@ export default class CvLivePreviewPlugin extends Plugin {
             "--headless=new",
             "--disable-gpu",
             "--no-pdf-header-footer",
-            "--allow-file-access-from-files",
             `--user-data-dir=${join(tmp, "profile")}`,
             `--print-to-pdf=${rawPdf}`,
             `file://${htmlPath}`,

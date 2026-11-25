@@ -143,6 +143,10 @@ text with font objects; the export warns if no font objects are found.
   Optional: `linkedin`, `github`, and `obsidian` (a URL, or `<url> | <label>`), shown in the
   header with icons; `location`, shown by the `classic` theme only; `variant`,
   `keywords`, and the `cv-*` overrides above.
+- The header shows the contact items (`email`, `phone`, `website`, `linkedin`,
+  `github`, `obsidian`, and `location` in `classic`) in frontmatter order. The
+  modern themes put them on one row, which wraps when the labels are long.
+  Short labels (`<url> | LinkedIn`) keep the row to one line.
 - Text before the first `##` is the summary.
 - `## Experience` and `## Projects`: `### Company · Position · period`, then bullets.
 - `## Skills`: `### Group`, then a comma-separated keyword line.

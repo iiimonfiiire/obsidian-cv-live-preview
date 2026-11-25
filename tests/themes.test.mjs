@@ -79,6 +79,27 @@ test("modern markup has no location, a rule, and link icons", () => {
   assert.equal(out.match(/class="contact-row"/g).length, 6);
 });
 
+test("header contact items follow frontmatter order in both themes", () => {
+  const reordered = CV.replace(
+    /email: .*\nphone: .*\nlocation: .*\n/,
+    "location: Nowhere\n",
+  ).replace("website: https://example.com | Portfolio\n", "website: https://example.com | Portfolio\nphone: 000-000\nemail: jane@example.com\n");
+  for (const id of ["a", "classic"]) {
+    const out = renderHtml(reordered, { css: "", theme: getTheme(id), fonts: "" });
+    const order = ["linkedin.com", "github.com/jane", "obsidian.md", "example.com\"", "tel:", "mailto:"].map((s) => out.indexOf(s));
+    assert.ok(order.every((i) => i > 0), `${id}: every item rendered`);
+    assert.deepEqual([...order].sort((x, y) => x - y), order, `${id}: frontmatter order`);
+  }
+});
+
+test("modern contact strip is one wrapping row", async () => {
+  const css = await readFile(new URL("../src/themes/modern.css", import.meta.url), "utf8");
+  const rule = css.match(/\n\.contact \{[^}]*\}/)[0];
+  assert.match(rule, /display: flex/);
+  assert.match(rule, /flex-wrap: wrap/);
+  assert.match(rule, /justify-content: space-between/);
+});
+
 test("parseLink handles bare urls and labels", () => {
   assert.deepEqual(parseLink("https://example.com | Portfolio"), { url: "https://example.com", label: "Portfolio" });
   assert.equal(parseLink("https://www.linkedin.com/in/jane/").label, "linkedin.com/in/jane");

@@ -47,7 +47,7 @@ function lintFrontmatter(lines, out) {
   } else if (web && !/^https?:\/\//.test(web)) {
     out.push({ level: "warn", line: seen.website.line, message: "website URL should start with http:// or https://." });
   }
-  for (const key of ["linkedin", "github"]) {
+  for (const key of ["linkedin", "github", "obsidian"]) {
     const v = seen[key]?.value;
     if (v && !/^https?:\/\/\S+/.test(v.split("|")[0].trim())) {
       out.push({ level: "warn", line: seen[key].line, message: `${key} should be a URL starting with http:// or https://.` });

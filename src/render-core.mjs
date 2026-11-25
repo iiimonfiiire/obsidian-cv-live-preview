@@ -47,6 +47,8 @@ const ICON = {
     '<rect x="1.75" y="1.75" width="12.5" height="12.5" rx="2"/><path d="M5 7v4.5M5 4.75v.01M8 11.5V7m0 2.2c0-1.3.9-2.2 2-2.2s1.6.8 1.6 2v2.5"/>',
   github:
     '<path d="M6 14.25v-2.1c-2.6.6-3.1-1.1-3.1-1.1M10 14.25v-2.3c0-.7-.2-1.1-.6-1.4 2-.2 3.6-1 3.6-3.9 0-.8-.3-1.5-.8-2 .1-.3.3-1.1-.1-2.1 0 0-.7-.2-2.1.8a7 7 0 0 0-3.8 0C4.8 2.2 4.1 2.4 4.1 2.4c-.4 1-.2 1.8-.1 2.1-.5.5-.8 1.2-.8 2 0 2.9 1.6 3.7 3.6 3.9-.4.3-.6.8-.6 1.4"/>',
+  obsidian:
+    '<path d="M8 1.75 12.75 5.5 11.25 14.25h-6.5L3.25 5.5Z"/><path d="M8 1.75 6.75 8.25 4.75 14.25M6.75 8.25l4.5 6"/>',
 };
 const icon = (n) =>
   `<span class="ic" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg></span>`;
@@ -73,6 +75,7 @@ function header(meta) {
     link("globe", meta.website),
     link("linkedin", meta.linkedin),
     link("github", meta.github),
+    link("obsidian", meta.obsidian),
   ].filter(Boolean);
   return `<header>
   <h1>${meta.name}</h1>
@@ -93,6 +96,7 @@ const CLASSIC_ICON = {
   globe: '<circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/>',
   linkedin: ICON.linkedin,
   github: ICON.github,
+  obsidian: ICON.obsidian,
 };
 const classicIcon = (n) =>
   `<svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${CLASSIC_ICON[n]}</svg>`;
@@ -112,6 +116,7 @@ function headerClassic(meta) {
     ${link("globe", meta.website)}
     ${link("linkedin", meta.linkedin)}
     ${link("github", meta.github)}
+    ${link("obsidian", meta.obsidian)}
   </div>
   <div class="rule"></div>
 </header>`;

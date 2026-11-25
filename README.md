@@ -140,7 +140,7 @@ text with font objects; the export warns if no font objects are found.
 ## Markdown format
 
 - Frontmatter: `name`, `headline`, `email`, `phone`, `website: <url> | <label>`.
-  Optional: `linkedin` and `github` (a URL, or `<url> | <label>`), shown in the
+  Optional: `linkedin`, `github`, and `obsidian` (a URL, or `<url> | <label>`), shown in the
   header with icons; `location`, shown by the `classic` theme only; `variant`,
   `keywords`, and the `cv-*` overrides above.
 - Text before the first `##` is the summary.

@@ -15,6 +15,7 @@ phone: 000-000
 location: Nowhere
 linkedin: https://www.linkedin.com/in/jane
 github: https://github.com/jane
+obsidian: https://community.obsidian.md/users/jane | Obsidian
 website: https://example.com | Portfolio
 ---
 
@@ -65,6 +66,7 @@ test("classic keeps the original one-page markup", () => {
   assert.match(out, /<span class="sep"> • <\/span>/);
   assert.match(out, /<article class="edu">/);
   assert.match(out, /linkedin\.com\/in\/jane/);
+  assert.match(out, /href="https:\/\/community\.obsidian\.md\/users\/jane">Obsidian</);
 });
 
 test("modern markup has no location, a rule, and link icons", () => {
@@ -73,6 +75,8 @@ test("modern markup has no location, a rule, and link icons", () => {
   assert.doesNotMatch(out, /class="page"/);
   assert.match(out, /<hr class="rule">/);
   assert.match(out, /href="https:\/\/github\.com\/jane"/);
+  assert.match(out, /href="https:\/\/community\.obsidian\.md\/users\/jane">Obsidian</);
+  assert.equal(out.match(/class="contact-row"/g).length, 6);
 });
 
 test("parseLink handles bare urls and labels", () => {
@@ -128,6 +132,7 @@ test("lint: location optional, link and theme checks", () => {
   const body = "---\n\nSummary.\n\n## Experience\n\n### Acme · Writer · 2020\n\n- Did.\n";
   assert.equal(lintCv(base + body).filter((i) => i.level === "error").length, 0);
   assert.ok(lintCv(`${base}linkedin: example\n${body}`).some((i) => /linkedin should be a URL/.test(i.message)));
+  assert.ok(lintCv(`${base}obsidian: example\n${body}`).some((i) => /obsidian should be a URL/.test(i.message)));
   assert.ok(lintCv(`${base}cv-theme: zzz\n${body}`).some((i) => /cv-theme "zzz"/.test(i.message)));
   assert.equal(lintCv(`${base}cv-theme: classic\n${body}`).length, 0);
 });

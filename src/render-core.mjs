@@ -63,20 +63,30 @@ export function parseLink(value) {
   return { url, label: label || url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") };
 }
 
+// Contact items in frontmatter order. Each key maps to its icon; `location`
+// is shown only when the theme asks for it (classic).
+const CONTACT_ICONS = { email: "mail", location: "pin", phone: "phone", website: "globe", linkedin: "linkedin", github: "github", obsidian: "obsidian" };
+
+function contactItems(meta, row, link, { location = false } = {}) {
+  return Object.keys(meta)
+    .filter((k) => k in CONTACT_ICONS && meta[k] && (location || k !== "location"))
+    .map((k) => {
+      const ic = CONTACT_ICONS[k];
+      if (k === "email") return row(ic, `<a href="mailto:${meta.email}">${meta.email}</a>`);
+      if (k === "phone") return row(ic, `<a href="tel:${meta.phone}">${meta.phone}</a>`);
+      if (k === "location") return row(ic, `<span>${meta.location}</span>`);
+      return link(ic, meta[k]);
+    })
+    .filter(Boolean);
+}
+
 function header(meta) {
   const row = (ic, inner) => `<div class="contact-row">${icon(ic)}${inner}</div>`;
   const link = (ic, value) => {
     const l = parseLink(value);
     return l ? row(ic, `<a href="${escAttr(l.url)}">${escText(l.label)}</a>`) : "";
   };
-  const rows = [
-    row("mail", `<a href="mailto:${meta.email}">${meta.email}</a>`),
-    row("phone", `<a href="tel:${meta.phone}">${meta.phone}</a>`),
-    link("globe", meta.website),
-    link("linkedin", meta.linkedin),
-    link("github", meta.github),
-    link("obsidian", meta.obsidian),
-  ].filter(Boolean);
+  const rows = contactItems(meta, row, link);
   return `<header>
   <h1>${meta.name}</h1>
   <p class="headline">${meta.headline}</p>
@@ -110,13 +120,7 @@ function headerClassic(meta) {
   return `<header>
   <div class="id"><h1>${meta.name}</h1><p class="headline">${meta.headline}</p></div>
   <div class="contact">
-    ${row("mail", `<a href="mailto:${meta.email}">${meta.email}</a>`)}
-    ${meta.location ? row("pin", `<span>${meta.location}</span>`) : ""}
-    ${row("phone", `<a href="tel:${meta.phone}">${meta.phone}</a>`)}
-    ${link("globe", meta.website)}
-    ${link("linkedin", meta.linkedin)}
-    ${link("github", meta.github)}
-    ${link("obsidian", meta.obsidian)}
+    ${contactItems(meta, row, link, { location: true }).join("\n    ")}
   </div>
   <div class="rule"></div>
 </header>`;

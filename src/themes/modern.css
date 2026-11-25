@@ -133,11 +133,13 @@ header > h1 {
   color: var(--accent);
 }
 
-/* Contact: full-width strip under the name, 3 + 2 grid */
+/* Contact: one full-width row, in frontmatter order, spread edge to edge.
+   Wraps to a second line only when the items do not fit (long labels). */
 .contact {
-  display: grid;
-  grid-template-columns: repeat(3, max-content);
-  column-gap: var(--s6);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: var(--s4);
   row-gap: var(--s2);
   margin-top: var(--s4);
 }

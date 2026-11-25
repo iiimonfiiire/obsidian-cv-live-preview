@@ -1,6 +1,6 @@
 {
   "name": "obsidian-cv-live-preview",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Obsidian plugin: write a CV in Markdown, preview it live, export a PDF.",
   "license": "MIT",
